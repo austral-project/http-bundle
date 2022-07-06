@@ -1,0 +1,7 @@
+austral_http:
+  protocol:                 https
+
+  compression_gzip:
+    admin:                  true
+    website:                true
+    other:                  true

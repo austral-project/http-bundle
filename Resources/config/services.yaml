@@ -1,0 +1,25 @@
+services:
+  _defaults:
+    public:        true
+
+
+##### Http Listener Kernel
+  austral.http.listener:
+    class:          Austral\HttpBundle\Listener\HttpListener
+    arguments:
+      - "@service_container"
+      - "@event_dispatcher"
+      - "@austral.http.config"
+      - "@austral.tools.debug"
+    tags:
+      - { name: kernel.event_listener, event: kernel.request, method: initRequest, priority: 30 }
+      - { name: kernel.event_listener, event: kernel.request, method: onRequest }
+      - { name: kernel.event_listener, event: kernel.controller, method: onController }
+      - { name: kernel.event_listener, event: kernel.response, method: onResponse, priority: -2048 }
+      - { name: kernel.event_listener, event: kernel.finish_request, method: onFinishRequest }
+
+
+##### Configuration
+  austral.http.config:
+    class:      Austral\HttpBundle\Configuration\HttpConfiguration
+    arguments:  [ "%austral_http%" ]
