@@ -248,7 +248,7 @@ abstract class HttpHandler implements HttpHandlerInterface
    */
   public function addFlash(string $type, $message): void
   {
-    if (!$this->container->has('session')) {
+    if (!$this->request->hasSession()) {
       throw new LogicException('You can not use the addFlash method if sessions are disabled. Enable them in "config/packages/framework.yaml".');
     }
     $this->getSession()->getFlashBag()->add($type, $message);
@@ -259,7 +259,7 @@ abstract class HttpHandler implements HttpHandlerInterface
    */
   public function getSession(): ?Session
   {
-    return $this->container->get("session");
+    return $this->request->getSession();
   }
 
   /**

@@ -16,7 +16,9 @@ use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -135,14 +137,37 @@ abstract class HttpController implements HttpControllerInterface, ContainerAware
   }
 
   /**
+   * @return Request|null
+   */
+  protected function getRequest(): ?Request
+  {
+    return $this->container->get("request_stack")->getCurrentRequest();
+  }
+
+  /**
+   * @return SessionInterface|null
+   */
+  protected function getSession(): ?SessionInterface
+  {
+    if(!$this->getRequest())
+    {
+      return $this->getRequest()->getSession();
+    }
+    return null;
+  }
+
+  /**
    * Returns a rendered view.
    */
   protected function renderView(string $view, array $parameters = []): string
   {
-    if($flashMessages = $this->container->get('session')->getFlashBag()->all())
+    if($session = $this->getSession())
     {
-      $parameters['flashMessages'] = $flashMessages;
-      $this->container->get('session')->getFlashBag()->clear();
+      if($flashMessages = $session->getFlashBag()->all())
+      {
+        $parameters['flashMessages'] = $flashMessages;
+        $session->getFlashBag()->clear();
+      }
     }
     if (!$this->container->has('twig')) {
       throw new \LogicException('You can not use the "renderView" method if the Twig Bundle is not available. Try running "composer require symfony/twig-bundle".');
