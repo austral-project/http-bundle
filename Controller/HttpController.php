@@ -149,7 +149,7 @@ abstract class HttpController implements HttpControllerInterface, ContainerAware
    */
   protected function getSession(): ?SessionInterface
   {
-    if(!$this->getRequest())
+    if($this->getRequest())
     {
       return $this->getRequest()->getSession();
     }
