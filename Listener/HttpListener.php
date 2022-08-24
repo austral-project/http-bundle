@@ -27,6 +27,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBagInterface;
 use Symfony\Component\HttpKernel\Event\ControllerEvent;
+use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
@@ -166,6 +167,19 @@ class HttpListener
       $this->eventDispatcher->dispatch($this->httpEvent, $this->httpEvent::EVENT_AUSTRAL_HTTP_REQUEST);
     }
     $this->debug->stopWatchStop("request");
+  }
+
+  /**
+   * @param ExceptionEvent $event
+   */
+  public function onException(ExceptionEvent $event)
+  {
+    $this->debug->stopWatchStart("exception", "austral.http.listener");
+    if($this->httpEvent && $event->isMainRequest()) {
+      $this->httpEvent->setKernelEvent($event);
+      $this->eventDispatcher->dispatch($this->httpEvent, $this->httpEvent::EVENT_AUSTRAL_HTTP_EXCEPTION);
+    }
+    $this->debug->stopWatchStop("exception");
   }
 
   /**

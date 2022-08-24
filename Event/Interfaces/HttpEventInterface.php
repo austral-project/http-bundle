@@ -11,6 +11,7 @@
 namespace Austral\HttpBundle\Event\Interfaces;
 
 use Austral\HttpBundle\Handler\Interfaces\HttpHandlerInterface;
+use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Event\KernelEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
@@ -41,7 +42,7 @@ interface HttpEventInterface
   public function setHandler(HttpHandlerInterface $handler): HttpEventInterface;
 
   /**
-   * @return RequestEvent|ResponseEvent|null
+   * @return RequestEvent|ResponseEvent|ExceptionEvent|null
    */
   public function getKernelEvent();
 
