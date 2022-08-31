@@ -12,19 +12,17 @@ namespace Austral\HttpBundle\Listener;
 
 use Austral\HttpBundle\Configuration\HttpConfiguration;
 use Austral\HttpBundle\Controller\Interfaces\HttpControllerInterface;
+use Austral\HttpBundle\Event\HttpEvent;
 use Austral\HttpBundle\Event\Interfaces\HttpEventInterface;
 
 use Austral\AdminBundle\Event\AdminHttpEvent;
 
+use Austral\HttpBundle\Services\HttpRequest;
 use Austral\ToolsBundle\AustralTools;
 use Austral\ToolsBundle\Services\Debug;
-use Austral\WebsiteBundle\Entity\Interfaces\DomainInterface;
 use Austral\WebsiteBundle\Event\WebsiteHttpEvent;
-use Austral\WebsiteBundle\Services\Domain;
-use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBagInterface;
 use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
@@ -59,14 +57,14 @@ class HttpListener
   protected HttpConfiguration $configuration;
 
   /**
-   * @var HttpEventInterface|null
+   * @var HttpRequest|null
    */
-  protected ?HttpEventInterface $httpEvent = null;
+  protected ?HttpRequest $httpRequest = null;
 
   /**
-   * @var bool
+   * @var HttpEventInterface|HttpEvent|null
    */
-  protected bool $compressionGzipEnabled = false;
+  protected ?HttpEventInterface $httpEvent = null;
 
   /**
    * ControllerListener constructor.
@@ -74,20 +72,24 @@ class HttpListener
    * @param ContainerInterface $container
    * @param EventDispatcherInterface $eventDispatcher
    * @param HttpConfiguration $configuration
+   * @param HttpRequest $httpRequest
    * @param Debug $debug
    */
-  public function __construct(ContainerInterface $container, EventDispatcherInterface $eventDispatcher, HttpConfiguration $configuration, Debug $debug)
+  public function __construct(ContainerInterface $container,
+    EventDispatcherInterface $eventDispatcher,
+    HttpConfiguration $configuration,
+    HttpRequest $httpRequest,
+    Debug $debug)
   {
     $this->container = $container;
     $this->debug = $debug;
     $this->eventDispatcher = $eventDispatcher;
     $this->configuration = $configuration;
+    $this->httpRequest = $httpRequest;
   }
 
   /**
    * @param RequestEvent $event
-   *
-   * @throws NonUniqueResultException
    */
   public function initRequest(RequestEvent $event)
   {
@@ -96,63 +98,35 @@ class HttpListener
     /** @var AttributeBagInterface $requestAttributes */
     $requestAttributes = $event->getRequest()->attributes;
 
-
-    $domainService = $currentDomain = null;
-    if($websiteDomainIsDefined = $this->container->has('austral.website.domain'))
-    {
-      /** @var Domain $domainService */
-      $domainService = $this->container->get('austral.website.domain');
-
-      /** @var DomainInterface $currentDomain */
-      $currentDomain = $domainService->getCurrentDomain();
-    }
-
-    $currentLocal = null;
+    $this->httpRequest->setRequest($event->getRequest());
     if($requestAttributes->get('_austral_admin', false))
     {
-      $this->compressionGzipEnabled = $this->configuration->get('compression_gzip.admin');
+      $this->httpRequest->setCompressionGzipEnabled($this->configuration->get('compression_gzip.admin'));
       $this->httpEvent = new AdminHttpEvent();
-
-      if($websiteDomainIsDefined) {
-        /** @var DomainInterface $masterDomain */
-        $masterDomain = $domainService->getDomainMaster();
-        if($currentDomain && $masterDomain && $masterDomain->getId() !== $currentDomain->getId()) {
-          $urlRedirect = $event->getRequest()->getScheme() . "://" . $masterDomain->getDomain() . $event->getRequest()->getRequestUri();
-          $response = new RedirectResponse($urlRedirect, 302);
-          $event->setResponse($response);
-        }
-      }
-      $currentLocal = $event->getRequest()->getSession()->get("austral_language_interface");
-      if(!$event->getRequest()->attributes->has("language"))
-      {
-        $event->getRequest()->attributes->set("language", $this->container->getParameter('locale'));
-      }
     }
-    else if($requestAttributes->get('_austral_website', false)) {
-      $this->compressionGzipEnabled = $this->configuration->get('compression_gzip.website');
-      $this->httpEvent = new WebsiteHttpEvent();
-      if($currentDomain && $currentDomain->getLanguage()) {
-        $currentLocal = $currentDomain->getLanguage();
-      }
-      if($event->getRequest()->attributes->has("_locale"))
-      {
-        $currentLocal = $event->getRequest()->attributes->get("_locale");
-      }
-      if(!$event->getRequest()->attributes->has("language"))
-      {
-        $event->getRequest()->attributes->set("language", $currentLocal ? : $this->container->getParameter('locale'));
-      }
-
-    }
-    else {
-      $this->compressionGzipEnabled = $this->configuration->get('compression_gzip.other');
-    }
-    if($currentLocal)
+    else if($requestAttributes->get('_austral_website', false))
     {
-      $event->getRequest()->setLocale($currentLocal);
-      $event->getRequest()->setDefaultLocale($currentLocal);
+      $this->httpRequest->setCompressionGzipEnabled($this->configuration->get('compression_gzip.website'));
+      $this->httpEvent = new WebsiteHttpEvent();
+    }
+    else if($httpEventName = $requestAttributes->get('_austral_http_event'))
+    {
+      $this->httpRequest->setCompressionGzipEnabled($this->configuration->get('compression_gzip.other'));
+      if(class_exists($httpEventName))
+      {
+        $this->httpEvent = new $httpEventName();
+      }
     }
 
+    if($this->httpEvent)
+    {
+      $this->httpEvent->setKernelEvent($event);
+      $this->httpEvent->setHttpRequest($this->httpRequest);
+      $this->eventDispatcher->dispatch($this->httpEvent, $this->httpEvent::EVENT_AUSTRAL_HTTP_REQUEST_INITIALISE);
+    }
+
+    $event->getRequest()->setLocale($this->httpRequest->getLanguage());
+    $event->getRequest()->setDefaultLocale($this->httpRequest->getLanguage());
     $this->debug->stopWatchStop("init-request");
   }
 
@@ -218,7 +192,7 @@ class HttpListener
         $this->eventDispatcher->dispatch($this->httpEvent, $this->httpEvent::EVENT_AUSTRAL_HTTP_RESPONSE);
       }
       $response = $responseEvent->getResponse();
-      if($this->compressionGzipEnabled) {
+      if($this->httpRequest->getIsCompressionGzipEnabled()) {
         $encodings = $responseEvent->getRequest()->getEncodings();
         if(in_array('gzip', $encodings) && function_exists('gzencode')) {
           $content = gzencode($response->getContent());
@@ -240,6 +214,12 @@ class HttpListener
    */
   public function onFinishRequest(FinishRequestEvent $finishRequestEvent)
   {
+    $this->debug->stopWatchStart("finish-request", "austral.http.listener");
+    if($this->httpEvent && $finishRequestEvent->isMainRequest()) {
+      $this->httpEvent->setKernelEvent($finishRequestEvent);
+      $this->eventDispatcher->dispatch($this->httpEvent, $this->httpEvent::EVENT_AUSTRAL_HTTP_REQUEST_FINISH);
+    }
+    $this->debug->stopWatchStart("finish-request");
   }
 
   /**

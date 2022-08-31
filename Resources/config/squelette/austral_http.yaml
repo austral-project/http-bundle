@@ -1,4 +1,5 @@
 austral_http:
+  default_language:         "en"
   protocol:                 https
 
   compression_gzip:

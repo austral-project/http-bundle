@@ -66,6 +66,14 @@ abstract class HttpEventSubscriber implements EventSubscriberInterface, HttpEven
    *
    * @return mixed
    */
+  abstract public function onRequestInitialise(HttpEventInterface $httpEvent);
+
+
+  /**
+   * @param HttpEventInterface $httpEvent
+   *
+   * @return mixed
+   */
   abstract public function onRequest(HttpEventInterface $httpEvent);
 
   /**
@@ -81,6 +89,13 @@ abstract class HttpEventSubscriber implements EventSubscriberInterface, HttpEven
    * @return mixed
    */
   abstract public function onResponse(HttpEventInterface $httpEvent);
+
+  /**
+   * @param HttpEventInterface $httpEvent
+   *
+   * @return void
+   */
+  abstract public function onException(HttpEventInterface $httpEvent);
 
 
 }

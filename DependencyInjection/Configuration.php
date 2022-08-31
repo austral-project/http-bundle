@@ -32,6 +32,7 @@ class Configuration implements ConfigurationInterface
     $rootNode = $treeBuilder->getRootNode();
     $node = $rootNode->children();
     $node->scalarNode("protocol")->end();
+    $node->scalarNode("default_language")->end();
     $node->arrayNode("compression_gzip")
         ->children()
           ->booleanNode("admin")->end()
@@ -50,7 +51,8 @@ class Configuration implements ConfigurationInterface
   {
     return array(
       "protocol"    =>  "https",
-      "compression_gzip"   =>  array(
+      "default_language"    =>  "en",
+      "compression_gzip"    =>  array(
         "admin"   =>  true,
         "website" =>  true,
         "other"   =>  true,
