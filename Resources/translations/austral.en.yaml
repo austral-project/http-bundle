@@ -1,0 +1,23 @@
+pages:
+  names:
+    domaine:
+      singular:                                 Domain
+      plural:                                   Domains
+
+fields:
+  domain:
+    entitled:                                   Domain
+  isMaster:
+    entitled:                                   Is master ?
+  onePage:
+    entitled:                                   Has unique page ?
+  scheme:
+    entitled:                                   Scheme
+  redirectUrl:
+    entitled:                                   Redirect URL
+  isVirtual:
+    entitled:                                   Is virtual ?
+  favicon:
+    entitled:                                   Favicon
+  nameDomain:
+    entitled:                                   Name

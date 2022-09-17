@@ -6,6 +6,13 @@ services:
 
 
 ##### Http Listener Kernel
+
+  austral.http.doctrine.listener:
+    class:        Austral\HttpBundle\Listener\DoctrineListener
+    arguments:    [ "@austral.http.domains.management" ]
+    tags:
+      - { name: doctrine.event_subscriber, connection: default }
+
   austral.http.listener:
     class:          Austral\HttpBundle\Listener\HttpListener
     arguments:
@@ -24,10 +31,19 @@ services:
 
 ##### Http Services
   austral.http.request:
-    class:      Austral\HttpBundle\Services\HttpRequest
-    arguments:  [ "@austral.http.config" ]
+    class:          Austral\HttpBundle\Services\HttpRequest
+    arguments:      [ "@austral.http.config" ]
+
+  austral.http.domains.management:
+    class:          Austral\HttpBundle\Services\DomainsManagement
+    arguments:      ["@request_stack", "@austral.entity_manager.domain", "@austral.http.request"]
 
 ##### Configuration
   austral.http.config:
     class:      Austral\HttpBundle\Configuration\HttpConfiguration
     arguments:  [ "%austral_http%" ]
+
+##### Domain Entity Manager
+  austral.entity_manager.domain:
+    class:          Austral\HttpBundle\EntityManager\DomainEntityManager
+    arguments:      [ "@doctrine.orm.entity_manager",  "@event_dispatcher", "%austral.entity.domain.class%" ]

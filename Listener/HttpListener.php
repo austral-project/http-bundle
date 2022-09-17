@@ -15,12 +15,10 @@ use Austral\HttpBundle\Controller\Interfaces\HttpControllerInterface;
 use Austral\HttpBundle\Event\HttpEvent;
 use Austral\HttpBundle\Event\Interfaces\HttpEventInterface;
 
-use Austral\AdminBundle\Event\AdminHttpEvent;
-
 use Austral\HttpBundle\Services\HttpRequest;
 use Austral\ToolsBundle\AustralTools;
 use Austral\ToolsBundle\Services\Debug;
-use Austral\WebsiteBundle\Event\WebsiteHttpEvent;
+
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBagInterface;
@@ -99,19 +97,9 @@ class HttpListener
     $requestAttributes = $event->getRequest()->attributes;
 
     $this->httpRequest->setRequest($event->getRequest());
-    if($requestAttributes->get('_austral_admin', false))
+    $this->httpRequest->setCompressionGzipEnabled(true);
+    if($httpEventName = $requestAttributes->get('_austral_http_event'))
     {
-      $this->httpRequest->setCompressionGzipEnabled($this->configuration->get('compression_gzip.admin'));
-      $this->httpEvent = new AdminHttpEvent();
-    }
-    else if($requestAttributes->get('_austral_website', false))
-    {
-      $this->httpRequest->setCompressionGzipEnabled($this->configuration->get('compression_gzip.website'));
-      $this->httpEvent = new WebsiteHttpEvent();
-    }
-    else if($httpEventName = $requestAttributes->get('_austral_http_event'))
-    {
-      $this->httpRequest->setCompressionGzipEnabled($this->configuration->get('compression_gzip.other'));
       if(class_exists($httpEventName))
       {
         $this->httpEvent = new $httpEventName();

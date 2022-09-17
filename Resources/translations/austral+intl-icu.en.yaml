@@ -1,0 +1,20 @@
+pages:
+  names:
+    pageByDomain:
+      countElement: >-
+                    {count, plural,
+                        =0    {}
+                        one   { page }
+                        other { pages }
+                    }
+
+dashboard:
+  tiles:
+    domains:
+      count:
+        entitled: >-
+                  {count, plural,
+                      =0    { Domain }
+                      one   { Domain }
+                      other { Domains }
+                  }

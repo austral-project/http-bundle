@@ -38,7 +38,28 @@ class AustralHttpExtension extends Extension
     $container->setParameter('austral_http', $config);
 
     $loader = new YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
+    $loader->load('parameters.yaml');
     $loader->load('services.yaml');
+    $this->loadConfigToAustralBundle($container, $loader);
+  }
+
+  /**
+   * @param ContainerBuilder $container
+   * @param YamlFileLoader $loader
+   *
+   * @throws Exception
+   */
+  protected function loadConfigToAustralBundle(ContainerBuilder $container, YamlFileLoader $loader)
+  {
+    $bundlesConfigPath = $container->getParameter("kernel.project_dir")."/config/bundles.php";
+    if(file_exists($bundlesConfigPath))
+    {
+      $contents = require $bundlesConfigPath;
+      if(array_key_exists("Austral\AdminBundle\AustralAdminBundle", $contents))
+      {
+        $loader->load('austral_admin.yaml');
+      }
+    }
   }
 
 }

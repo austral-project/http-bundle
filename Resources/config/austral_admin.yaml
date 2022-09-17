@@ -1,0 +1,32 @@
+services:
+  _defaults:
+    autowire:      true
+    autoconfigure: true
+    public:        true
+
+  ##### Listener
+  austral.http.dashboard.listener:
+    class:          Austral\HttpBundle\Listener\DashboardListener
+    arguments:      [ "@austral.http.domains.management" ]
+    tags:
+      - { name: kernel.event_listener, event: "austral.event.admin.dashboard", method: dashboard }
+
+
+parameters:
+
+  austral.admin.class.domain.class:                                 Austral\WebsiteBundle\Admin\DomainAdmin
+
+  austral.admin.modules.http_bundle.domain.enabled:                 true
+
+  austral_admin.modules.http_bundle:
+    domain:
+      enabled:                    "%austral.admin.modules.http_bundle.domain.enabled%"
+      navigation:
+        position:                 100
+      name:                       "Domain"
+      picto:                      "austral-picto-globe"
+      route:                      "domain"
+      class:                      "%austral.admin.class.domain.class%"
+      translate:                  "male_c"
+      sortable:                   true
+      entity_manager:             "austral.entity_manager.domain"
