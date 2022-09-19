@@ -15,7 +15,6 @@ use Austral\EntityBundle\Entity\Interfaces\TranslateChildInterface;
 use Austral\HttpBundle\Entity\Interfaces\DomainInterface;
 use Austral\EntityBundle\Entity\Interfaces\FilterByDomainInterface;
 use Austral\HttpBundle\EntityManager\DomainEntityManager;
-use Austral\ToolsBundle\AustralTools;
 use Doctrine\ORM\Query\QueryException;
 use Symfony\Component\HttpFoundation\RequestStack;
 
@@ -49,6 +48,11 @@ Class DomainsManagement
   /**
    * @var array
    */
+  protected array $domainsWithoutVirtual = array();
+
+  /**
+   * @var array
+   */
   protected array $domainsById = array();
 
   /**
@@ -60,6 +64,11 @@ Class DomainsManagement
    * @var DomainInterface|null
    */
   protected ?DomainInterface $domainMaster = null;
+
+  /**
+   * @var DomainInterface|null
+   */
+  protected ?DomainInterface $domainForAll = null;
 
   /**
    * @var string|null
@@ -110,9 +119,21 @@ Class DomainsManagement
         }
         if(!$domain->getIsVirtual())
         {
-          $this->enabledDomainWithoutVirtual++;
+          $this->domainsWithoutVirtual[$domain->getId()] = $domain;
         }
       }
+
+      if($this->getEnabledDomainWithoutVirtual() === 0)
+      {
+        $this->currentDomain = $this->domainEntityManager->create();
+        $this->currentDomain->setId("current");
+        $this->currentDomain->setName("Current");
+        $this->currentDomain->setDomain($_SERVER['DOMAIN']);
+        $this->domainMaster = $this->currentDomain;
+        $this->domainsById["current"] = $this->currentDomain;
+        $this->setFilterDomainId($this->currentDomain->getId());
+      }
+
     }
     return $this;
   }
@@ -122,7 +143,15 @@ Class DomainsManagement
    */
   public function getEnabledDomainWithoutVirtual(): int
   {
-    return $this->enabledDomainWithoutVirtual;
+    return count($this->domainsWithoutVirtual);
+  }
+
+  /**
+   * @return array
+   */
+  public function getDomainsWithoutVirtual(): array
+  {
+    return $this->domainsWithoutVirtual;
   }
 
   /**
@@ -169,13 +198,33 @@ Class DomainsManagement
   }
 
   /**
-   * @param string $id
+   * @param string|null $id
    *
    * @return ?DomainInterface
    */
-  public function getDomainById(string $id): ?DomainInterface
+  public function getDomainById(?string $id = null): ?DomainInterface
   {
-    return array_key_exists($id, $this->domainsById) ? $this->domainsById[$id] : null;
+    if($id)
+    {
+      return array_key_exists($id, $this->domainsById) ? $this->domainsById[$id] : null;
+    }
+    return $this->currentDomain;
+  }
+
+  /**
+   * @return DomainInterface|null
+   */
+  public function getDomainForAll(): ?DomainInterface
+  {
+    if(!$this->domainForAll)
+    {
+      $this->domainForAll = $this->domainEntityManager->create();
+      $this->domainForAll->setLanguage($this->getCurrentLanguage())
+        ->setDomain(null)
+        ->setId("all-domains")
+        ->setName("All Domains");
+    }
+    return $this->domainForAll;
   }
 
   /**

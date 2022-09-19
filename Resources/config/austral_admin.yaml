@@ -14,7 +14,7 @@ services:
 
 parameters:
 
-  austral.admin.class.domain.class:                                 Austral\WebsiteBundle\Admin\DomainAdmin
+  austral.admin.class.domain.class:                                 Austral\HttpBundle\Admin\DomainAdmin
 
   austral.admin.modules.http_bundle.domain.enabled:                 true
 

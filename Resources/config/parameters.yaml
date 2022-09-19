@@ -5,4 +5,4 @@ parameters:
 
 ##### Doctrine Resolve target Entities
   austral.resolve_target_entities.http:
-    Austral\HttpBundle\Entity\Interfaces\DomainInterface:                "%austral.entity.domain.class%"
+    Austral\HttpBundle\Entity\Interfaces\DomainInterface:                   "%austral.entity.domain.class%"

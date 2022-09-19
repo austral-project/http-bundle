@@ -43,7 +43,8 @@ class DomainAdmin extends Admin implements AdminModuleInterface
       ->buildDataHydrate(function(DataHydrateORM $dataHydrate) {
         $dataHydrate->addQueryBuilderPaginatorClosure(function(QueryBuilder $queryBuilder) {
           return $queryBuilder
-            ->orderBy("root.position", "ASC");
+            ->orderBy("root.position", "ASC")
+            ->addOrderBy("root.name", "ASC");
         });
       })
       ->addColumn(new Column\Value("domain"))

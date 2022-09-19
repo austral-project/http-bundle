@@ -38,6 +38,14 @@ trait FilterByDomainTrait
    */
   public function getDomainId(): ?string
   {
+    return $this->domainId ?? "current";
+  }
+
+  /**
+   * @return string|null
+   */
+  public function getDomainIdReel(): ?string
+  {
     return $this->domainId;
   }
 
@@ -48,7 +56,7 @@ trait FilterByDomainTrait
    */
   public function setDomainId(?string $domainId = null): FilterByDomainInterface
   {
-    $this->domainId = $domainId;
+    $this->domainId = $domainId === "current" ? null : $domainId;
     return $this;
   }
 
@@ -68,7 +76,7 @@ trait FilterByDomainTrait
   public function setDomain(?EntityInterface $domain): ?FilterByDomainInterface
   {
     if($domain) {
-      $this->domainId = $domain->getId();
+      $this->setDomainId($domain->getId());
       $this->domain = $domain;
     }
     return $this;

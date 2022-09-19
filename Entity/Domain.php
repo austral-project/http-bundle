@@ -111,11 +111,11 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   protected ?string $language = null;
 
   /**
-   * @var int|null
+   * @var int
    * @Gedmo\SortablePosition
    * @ORM\Column(name="position", type="integer", nullable=false, options={"default": 1} )
    */
-  protected ?int $position = null;
+  protected int $position = 1;
 
   /**
    * Constructor
