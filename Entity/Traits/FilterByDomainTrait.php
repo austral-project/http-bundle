@@ -29,6 +29,11 @@ trait FilterByDomainTrait
   protected ?string $domainId = null;
 
   /**
+   * @var bool
+   */
+  protected bool $withoutDomainId = false;
+
+  /**
    * @var DomainInterface|null
    */
   protected ?DomainInterface $domain = null;
@@ -38,7 +43,11 @@ trait FilterByDomainTrait
    */
   public function getDomainId(): ?string
   {
-    return $this->domainId ?? "current";
+    if($this->withoutDomainId)
+    {
+      return $this->domainId ?? "current";
+    }
+    return $this->domainId ?? null;
   }
 
   /**
@@ -56,6 +65,10 @@ trait FilterByDomainTrait
    */
   public function setDomainId(?string $domainId = null): FilterByDomainInterface
   {
+    if($domainId === "current")
+    {
+      $this->withoutDomainId = true;
+    }
     $this->domainId = $domainId === "current" ? null : $domainId;
     return $this;
   }

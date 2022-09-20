@@ -13,8 +13,10 @@ namespace Austral\HttpBundle\EventSubscriber;
 
 use Austral\HttpBundle\Event\Interfaces\HttpEventInterface;
 use Austral\HttpBundle\EventSubscriber\Interfaces\HttpEventSubscriberInterface;
+use Austral\HttpBundle\Services\DomainsManagement;
 use Austral\ToolsBundle\Configuration\ConfigurationInterface;
 use Austral\ToolsBundle\Services\Debug;
+use Doctrine\ORM\Query\QueryException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
@@ -37,6 +39,11 @@ abstract class HttpEventSubscriber implements EventSubscriberInterface, HttpEven
   protected ConfigurationInterface $configuration;
 
   /**
+   * @var DomainsManagement
+   */
+  protected DomainsManagement $domainsManagement;
+
+  /**
    * @var Debug
    */
   protected Debug $debug;
@@ -46,13 +53,17 @@ abstract class HttpEventSubscriber implements EventSubscriberInterface, HttpEven
    *
    * @param ContainerInterface $container
    * @param ConfigurationInterface $configuration
+   * @param DomainsManagement $domainsManagement
    * @param Debug $debug
+   *
+   * @throws QueryException
    */
-  public function __construct(ContainerInterface $container, ConfigurationInterface $configuration, Debug $debug)
+  public function __construct(ContainerInterface $container, ConfigurationInterface $configuration, DomainsManagement $domainsManagement, Debug $debug)
   {
     $this->container = $container;
     $this->configuration = $configuration;
     $this->debug = $debug;
+    $this->domainsManagement = $domainsManagement->initialize();
   }
 
   /**

@@ -15,6 +15,7 @@ use Austral\EntityBundle\Entity\Interfaces\TranslateChildInterface;
 use Austral\HttpBundle\Entity\Interfaces\DomainInterface;
 use Austral\EntityBundle\Entity\Interfaces\FilterByDomainInterface;
 use Austral\HttpBundle\EntityManager\DomainEntityManager;
+use Austral\ToolsBundle\Services\Debug;
 use Doctrine\ORM\Query\QueryException;
 use Symfony\Component\HttpFoundation\RequestStack;
 
@@ -34,6 +35,11 @@ Class DomainsManagement
    * @var HttpRequest
    */
   protected HttpRequest $httpRequest;
+
+  /**
+   * @var Debug
+   */
+  protected Debug $debug;
 
   /**
    * @var ?string
@@ -86,13 +92,15 @@ Class DomainsManagement
    * @param RequestStack $requestStack
    * @param DomainEntityManager $domainEntityManager
    * @param HttpRequest $httpRequest
+   * @param Debug $debug
    */
-  public function __construct(RequestStack $requestStack, DomainEntityManager $domainEntityManager, HttpRequest $httpRequest)
+  public function __construct(RequestStack $requestStack, DomainEntityManager $domainEntityManager, HttpRequest $httpRequest, Debug $debug)
   {
     $request = $requestStack->getCurrentRequest();
     $this->host = $request ? $request->getHost() : null;
     $this->domainEntityManager = $domainEntityManager;
     $this->httpRequest = $httpRequest;
+    $this->debug = $debug;
   }
 
   /**
@@ -101,6 +109,7 @@ Class DomainsManagement
    */
   public function initialize(): DomainsManagement
   {
+    $this->debug->stopWatchStart("austral.domain_management.initialize", "austral.http.domain_management");
     if(!$this->domains)
     {
       $this->domains = $this->domainEntityManager->selectAllEnabledDomains();
@@ -133,8 +142,8 @@ Class DomainsManagement
         $this->domainsById["current"] = $this->currentDomain;
         $this->setFilterDomainId($this->currentDomain->getId());
       }
-
     }
+    $this->debug->stopWatchStop("austral.domain_management.initialize");
     return $this;
   }
 

@@ -36,7 +36,11 @@ services:
 
   austral.http.domains.management:
     class:          Austral\HttpBundle\Services\DomainsManagement
-    arguments:      ["@request_stack", "@austral.entity_manager.domain", "@austral.http.request"]
+    arguments:
+      - "@request_stack"
+      - "@austral.entity_manager.domain"
+      - "@austral.http.request"
+      - "@austral.tools.debug"
 
 ##### Configuration
   austral.http.config:
