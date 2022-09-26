@@ -10,6 +10,7 @@
  
 namespace Austral\HttpBundle\Handler\Interfaces;
 
+use Austral\HttpBundle\Services\DomainsManagement;
 use Austral\HttpBundle\Template\Interfaces\HttpTemplateParametersInterface;
 
 use Austral\EntityBundle\EntityManager\EntityManagerInterface;
@@ -53,6 +54,18 @@ interface HttpHandlerInterface
    * @return $this
    */
   public function setRequest(?Request $request): HttpHandlerInterface;
+
+  /**
+   * @return DomainsManagement
+   */
+  public function getDomainsManagement(): DomainsManagement;
+
+  /**
+   * @param DomainsManagement $domainsManagement
+   *
+   * @return HttpHandlerInterface
+   */
+  public function setDomainsManagement(DomainsManagement $domainsManagement): HttpHandlerInterface;
 
   /**
    * Get dispatcher

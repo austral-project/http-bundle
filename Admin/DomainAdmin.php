@@ -9,7 +9,7 @@
  */
  
 namespace Austral\HttpBundle\Admin;
-use App\Entity\Austral\WebsiteBundle\Page;
+use Austral\EntityBundle\Entity\EntityInterface;
 use Austral\FormBundle\Mapper\Fieldset;
 use Austral\FormBundle\Mapper\GroupFields;
 use Austral\HttpBundle\Entity\Interfaces\DomainInterface;
@@ -22,7 +22,6 @@ use Austral\AdminBundle\Admin\Event\ListAdminEvent;
 use Austral\FormBundle\Field as Field;
 use Austral\ListBundle\Column as Column;
 use Austral\ListBundle\DataHydrate\DataHydrateORM;
-use Doctrine\ORM\EntityRepository;
 
 use Doctrine\ORM\QueryBuilder;
 use Exception;
@@ -33,6 +32,16 @@ use Exception;
  */
 class DomainAdmin extends Admin implements AdminModuleInterface
 {
+
+  /**
+   * @return array
+   */
+  public function getEvents() : array
+  {
+    return array(
+      FormAdminEvent::EVENT_UPDATE_BEFORE     =>  "formUpdateBefore"
+    );
+  }
 
   /**
    * @param ListAdminEvent $listAdminEvent
@@ -119,6 +128,7 @@ class DomainAdmin extends Admin implements AdminModuleInterface
           )
           ->add(Field\TextField::create("domain")->setGroupSize(GroupFields::SIZE_COL_10))
         ->end()
+        ->add(Field\TextField::create("keyname"))
         ->add(Field\TextField::create("name", array("entitled"=>"fields.nameDomain.entitled")))
         ->add(Field\TextField::create("language"))
         ->add(Field\TextField::create("redirectUrl"))
@@ -138,5 +148,20 @@ class DomainAdmin extends Admin implements AdminModuleInterface
         ->end()
       ->end();
   }
+  /**
+   * @param FormAdminEvent $formAdminEvent
+   *
+   * @throws Exception
+   */
+  protected function formUpdateBefore(FormAdminEvent $formAdminEvent)
+  {
+    /** @var DomainInterface|EntityInterface $object */
+    $object = $formAdminEvent->getFormMapper()->getObject();
+
+    if(!$object->getKeyname()) {
+      $object->setKeyname($object->getName());
+    }
+  }
+
 
 }

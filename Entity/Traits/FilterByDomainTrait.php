@@ -11,8 +11,7 @@
 namespace Austral\HttpBundle\Entity\Traits;
 
 use Austral\EntityBundle\Entity\EntityInterface;
-use Austral\EntityBundle\Entity\Interfaces\FilterByDomainInterface;
-use Austral\HttpBundle\Entity\Interfaces\DomainInterface;
+use Austral\HttpBundle\Services\DomainsManagement;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -29,31 +28,9 @@ trait FilterByDomainTrait
   protected ?string $domainId = null;
 
   /**
-   * @var bool
-   */
-  protected bool $withoutDomainId = false;
-
-  /**
-   * @var DomainInterface|null
-   */
-  protected ?DomainInterface $domain = null;
-
-  /**
    * @return string|null
    */
   public function getDomainId(): ?string
-  {
-    if($this->withoutDomainId)
-    {
-      return $this->domainId ?? "current";
-    }
-    return $this->domainId ?? null;
-  }
-
-  /**
-   * @return string|null
-   */
-  public function getDomainIdReel(): ?string
   {
     return $this->domainId;
   }
@@ -61,37 +38,11 @@ trait FilterByDomainTrait
   /**
    * @param string|null $domainId
    *
-   * @return FilterByDomainInterface
+   * @return EntityInterface
    */
-  public function setDomainId(?string $domainId = null): FilterByDomainInterface
+  public function setDomainId(?string $domainId = DomainsManagement::DOMAIN_ID_MASTER): EntityInterface
   {
-    if($domainId === "current")
-    {
-      $this->withoutDomainId = true;
-    }
-    $this->domainId = $domainId === "current" ? null : $domainId;
-    return $this;
-  }
-
-  /**
-   * @return DomainInterface|EntityInterface|null
-   */
-  public function getDomain(): ?EntityInterface
-  {
-    return $this->domain;
-  }
-
-  /**
-   * @param DomainInterface|EntityInterface|null $domain
-   *
-   * @return FilterByDomainInterface|null
-   */
-  public function setDomain(?EntityInterface $domain): ?FilterByDomainInterface
-  {
-    if($domain) {
-      $this->setDomainId($domain->getId());
-      $this->domain = $domain;
-    }
+    $this->domainId = $domainId;
     return $this;
   }
 

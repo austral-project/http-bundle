@@ -47,6 +47,18 @@ interface DomainInterface
   /**
    * @return string|null
    */
+  public function getKeyname(): ?string;
+
+  /**
+   * @param string|null $keyname
+   *
+   * @return DomainInterface
+   */
+  public function setKeyname(?string $keyname): DomainInterface;
+
+  /**
+   * @return string|null
+   */
   public function getFavicon(): ?string;
 
   /**
@@ -139,6 +151,23 @@ interface DomainInterface
    * @return DomainInterface
    */
   public function setLanguage(?string $language): DomainInterface;
+
+  /**
+   * @return string|null
+   */
+  public function getCurrentLanguage(): ?string;
+
+  /**
+   * @return string|null
+   */
+  public function getRequestLanguage(): ?string;
+
+  /**
+   * @param string|null $requestLanguage
+   *
+   * @return $this
+   */
+  public function setRequestLanguage(string $requestLanguage = null): DomainInterface;
 
 
 }

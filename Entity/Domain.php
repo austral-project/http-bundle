@@ -53,9 +53,15 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
 
   /**
    * @var string|null
-   * @ORM\Column(name="name", type="string", length=255, nullable=true )
+   * @ORM\Column(name="name", type="string", length=255, nullable=false)
    */
   protected ?string $name = null;
+
+  /**
+   * @var string|null
+   * @ORM\Column(name="keyname", type="string", length=255, nullable=false)
+   */
+  protected ?string $keyname = null;
 
   /**
    * @var string|null
@@ -170,6 +176,25 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   public function setName(?string $name): Domain
   {
     $this->name = $name;
+    return $this;
+  }
+
+  /**
+   * @return string|null
+   */
+  public function getKeyname(): ?string
+  {
+    return $this->keyname;
+  }
+
+  /**
+   * @param string|null $keyname
+   *
+   * @return Domain
+   */
+  public function setKeyname(?string $keyname): Domain
+  {
+    $this->keyname = $this->keynameGenerator($keyname);
     return $this;
   }
 
@@ -341,6 +366,38 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   public function setPosition(?int $position): Domain
   {
     $this->position = $position;
+    return $this;
+  }
+
+  /**
+   * @var string|null
+   */
+  protected ?string $requestLanguage = null;
+
+  /**
+   * @return string|null
+   */
+  public function getCurrentLanguage(): ?string
+  {
+    return $this->language ?? $this->requestLanguage;
+  }
+
+  /**
+   * @return string|null
+   */
+  public function getRequestLanguage(): ?string
+  {
+    return $this->requestLanguage;
+  }
+
+  /**
+   * @param string|null $requestLanguage
+   *
+   * @return $this
+   */
+  public function setRequestLanguage(string $requestLanguage = null): Domain
+  {
+    $this->requestLanguage = $requestLanguage;
     return $this;
   }
 

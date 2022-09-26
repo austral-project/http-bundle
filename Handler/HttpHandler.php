@@ -10,6 +10,7 @@
  
 namespace Austral\HttpBundle\Handler;
 use Austral\HttpBundle\Handler\Interfaces\HttpHandlerInterface;
+use Austral\HttpBundle\Services\DomainsManagement;
 use Austral\HttpBundle\Template\Interfaces\HttpTemplateParametersInterface;
 
 use App\Entity\Austral\SecurityBundle\User;
@@ -50,6 +51,11 @@ abstract class HttpHandler implements HttpHandlerInterface
   protected ?Request $request;
 
   /**
+   * @var DomainsManagement
+   */
+  protected DomainsManagement $domainsManagement;
+
+  /**
    * @var EventDispatcherInterface
    */
   protected EventDispatcherInterface $dispatcher;
@@ -85,6 +91,7 @@ abstract class HttpHandler implements HttpHandlerInterface
    *
    * @param ContainerInterface $container
    * @param RequestStack $requestStack
+   * @param DomainsManagement $domainsManagement
    * @param EventDispatcherInterface $dispatcher
    * @param Debug $debug
    */
@@ -117,6 +124,25 @@ abstract class HttpHandler implements HttpHandlerInterface
   public function setRequest(?Request $request): HttpHandler
   {
     $this->request = $request;
+    return $this;
+  }
+
+  /**
+   * @return DomainsManagement
+   */
+  public function getDomainsManagement(): DomainsManagement
+  {
+    return $this->domainsManagement;
+  }
+
+  /**
+   * @param DomainsManagement $domainsManagement
+   *
+   * @return HttpHandler
+   */
+  public function setDomainsManagement(DomainsManagement $domainsManagement): HttpHandler
+  {
+    $this->domainsManagement = $domainsManagement;
     return $this;
   }
 

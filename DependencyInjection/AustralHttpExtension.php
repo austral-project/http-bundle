@@ -40,6 +40,7 @@ class AustralHttpExtension extends Extension
     $loader = new YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
     $loader->load('parameters.yaml');
     $loader->load('services.yaml');
+    $loader->load('command.yaml');
     $this->loadConfigToAustralBundle($container, $loader);
   }
 

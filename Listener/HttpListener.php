@@ -123,6 +123,7 @@ class HttpListener
    */
   public function onRequest(RequestEvent $event)
   {
+    $this->httpRequest->setRequest($event->getRequest());
     $this->debug->stopWatchStart("request", "austral.http.listener");
     if($this->httpEvent && $event->isMainRequest()) {
       $this->httpEvent->setKernelEvent($event);

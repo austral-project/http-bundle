@@ -11,8 +11,6 @@
 namespace Austral\HttpBundle\Listener;
 
 use Austral\AdminBundle\Event\DashboardEvent;
-use Austral\SeoBundle\Entity\Interfaces\UrlParameterInterface;
-use Austral\SeoBundle\Services\UrlParameterManagement;
 
 use Austral\AdminBundle\Dashboard\Values as DashboardValues;
 use Austral\HttpBundle\Services\DomainsManagement;
@@ -46,7 +44,7 @@ class DashboardListener
    */
   public function dashboard(DashboardEvent $dashboardEvent)
   {
-    if($this->domainsManagement->getEnabledDomainWithoutVirtual() > 1)
+    if($this->domainsManagement->getEnabledDomainWithoutVirtual())
     {
       $dashboardTileDomains = new DashboardValues\Tile("domains");
       $dashboardTileDomains->setEntitled("dashboard.tiles.domains.count.entitled")
@@ -54,7 +52,7 @@ class DashboardListener
         ->setColorNum(1)
         ->setPicto("browser")
         ->setPosition(1)
-        ->setValue($this->domainsManagement->getEnabledDomainWithoutVirtual());
+        ->setValue(count($this->domainsManagement->getDomainsWithoutVirtual()));
 
       $dashboardEvent->getDashboardBlock()->getChild("austral_tiles_values")
         ->addValue($dashboardTileDomains);

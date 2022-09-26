@@ -29,6 +29,11 @@ services:
       - { name: kernel.event_listener, event: kernel.exception, method: onException, priority: 2048 }
       - { name: kernel.event_listener, event: kernel.finish_request, method: onFinishRequest }
 
+  austral.http.entity_mapping.listener:
+    class:        Austral\HttpBundle\Listener\EntityMappingListener
+    tags:
+      - { name: kernel.event_listener, event: "austral.event.entity.initialise.mapping", method: mapping }
+
 ##### Http Services
   austral.http.request:
     class:          Austral\HttpBundle\Services\HttpRequest
@@ -37,7 +42,7 @@ services:
   austral.http.domains.management:
     class:          Austral\HttpBundle\Services\DomainsManagement
     arguments:
-      - "@request_stack"
+      - "@austral.entity.mapping"
       - "@austral.entity_manager.domain"
       - "@austral.http.request"
       - "@austral.tools.debug"
