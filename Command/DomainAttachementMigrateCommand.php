@@ -10,16 +10,12 @@
 
 namespace Austral\HttpBundle\Command;
 
+use Austral\EntityBundle\Entity\Entity;
 use Austral\EntityBundle\Mapping\EntityMapping;
 use Austral\HttpBundle\Mapping\DomainFilterMapping;
-use Austral\HttpBundle\Services\DomainsManagement;
-use Austral\SeoBundle\EntityManager\UrlParameterEntityManager;
-use Austral\SeoBundle\Services\UrlParameterManagement;
 use Austral\ToolsBundle\Command\Base\Command;
-use Doctrine\DBAL\Driver\PDO\MySQL\Driver;
 use Exception;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
@@ -39,11 +35,6 @@ class DomainAttachementMigrateCommand extends Command
    * @var string
    */
   protected string $titleCommande = "Attachement domain with migrate 3.0 to 3.1";
-
-  /**
-   * @var UrlParameterEntityManager|null
-   */
-  protected ?UrlParameterEntityManager $urlParameterEntityManager;
 
   /**
    * {@inheritdoc}
@@ -72,14 +63,32 @@ EOF
   protected function executeCommand(InputInterface $input, OutputInterface $output)
   {
     $entityManager = $this->container->get("austral.entity_manager");
+    $domainsManagement = $this->container->get('austral.http.domains.management')->initialize();
     /** @var EntityMapping $entityMapping */
     foreach($this->container->get('austral.entity.mapping')->getEntitiesMapping() as $entityMapping)
     {
       /** @var DomainFilterMapping $domainFilterMapping */
       if($domainFilterMapping = $entityMapping->getEntityClassMapping(DomainFilterMapping::class))
       {
+        if($domainFilterMapping->getAutoDomainId())
+        {
+          $objects = $entityManager->getRepository($entityMapping->entityClass)->createQueryBuilder("root")
+            ->where("root.domainId IS NULL")
+            ->getQuery()
+            ->execute();
 
+          if($objects)
+          {
+            /** @var Entity $object */
+            foreach($objects as $object)
+            {
+              $object->setDomainId($domainsManagement->getDomainMaster()->getId());
+              $entityManager->update($object, false);
+            }
+          }
+        }
       }
+      $entityManager->flush();
     }
   }
 

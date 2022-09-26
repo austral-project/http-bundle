@@ -16,8 +16,10 @@ use Austral\EntityBundle\Mapping\Mapping;
 use Austral\HttpBundle\Entity\Interfaces\DomainInterface;
 use Austral\HttpBundle\EntityManager\DomainEntityManager;
 use Austral\HttpBundle\Mapping\DomainFilterMapping;
+use Austral\ToolsBundle\AustralTools;
 use Austral\ToolsBundle\Services\Debug;
 use Doctrine\ORM\Query\QueryException;
+use Symfony\Component\Routing\RequestContext;
 
 /**
  * Austral Domain Service.
@@ -68,6 +70,11 @@ Class DomainsManagement
    * @var array
    */
   protected array $domainsIdByKeyname = array();
+
+  /**
+   * @var array
+   */
+  protected array $requestContextByDomainId = array();
 
   /**
    * @var DomainInterface|null
@@ -143,6 +150,13 @@ Class DomainsManagement
         {
           $this->domainsWithoutVirtual[$domain->getId()] = $domain;
           $this->domainsIdByKeyname[$domain->getKeyname()] = $domain->getId();
+          $requestContext = new RequestContext();
+          if($this->httpRequest->getRequest())
+          {
+            $requestContext->fromRequest($this->httpRequest->getRequest());
+          }
+          $requestContext->setScheme($domain->getScheme());
+          $this->requestContextByDomainId[$domain->getId()] = $requestContext->setHost($domain->getDomain());
         }
       }
 
@@ -330,6 +344,16 @@ Class DomainsManagement
   public function getObjectsDomainAttachement(): array
   {
     return $this->objectsDomainAttachement;
+  }
+
+  /**
+   * @param string $domainId
+   *
+   * @return RequestContext|null
+   */
+  public function getRequestContextByDomainId(string $domainId): ?RequestContext
+  {
+    return AustralTools::getValueByKey($this->requestContextByDomainId, $this->getReelDomainId($domainId));
   }
 
   /**
