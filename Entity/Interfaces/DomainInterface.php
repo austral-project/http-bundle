@@ -153,6 +153,18 @@ interface DomainInterface
   public function setLanguage(?string $language): DomainInterface;
 
   /**
+   * @return int|null
+   */
+  public function getPosition(): ?int;
+
+  /**
+   * @param int|null $position
+   *
+   * @return DomainInterface
+   */
+  public function setPosition(?int $position): DomainInterface;
+
+  /**
    * @return string|null
    */
   public function getCurrentLanguage(): ?string;
