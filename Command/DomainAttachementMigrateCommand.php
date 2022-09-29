@@ -16,6 +16,7 @@ use Austral\HttpBundle\Mapping\DomainFilterMapping;
 use Austral\ToolsBundle\Command\Base\Command;
 use Exception;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
@@ -43,6 +44,7 @@ class DomainAttachementMigrateCommand extends Command
   {
     $this
       ->setDefinition([
+        new InputOption('--force', '-f', InputOption::VALUE_NONE, 'Add domain master for all objects'),
       ])
       ->setDescription($this->titleCommande)
       ->setHelp(<<<'EOF'
@@ -64,6 +66,7 @@ EOF
   {
     $entityManager = $this->container->get("austral.entity_manager");
     $domainsManagement = $this->container->get('austral.http.domains.management')->initialize();
+
     /** @var EntityMapping $entityMapping */
     foreach($this->container->get('austral.entity.mapping')->getEntitiesMapping() as $entityMapping)
     {
@@ -72,11 +75,14 @@ EOF
       {
         if($domainFilterMapping->getAutoDomainId())
         {
-          $objects = $entityManager->getRepository($entityMapping->entityClass)->createQueryBuilder("root")
-            ->where("root.domainId IS NULL")
-            ->getQuery()
+          $queryBuilder = $entityManager->getRepository($entityMapping->entityClass)
+            ->createQueryBuilder("root");
+          if(!$input->getOption("force"))
+          {
+            $queryBuilder->where("root.domainId IS NULL");
+          }
+          $objects = $queryBuilder->getQuery()
             ->execute();
-
           if($objects)
           {
             /** @var Entity $object */

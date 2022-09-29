@@ -91,7 +91,6 @@ abstract class HttpHandler implements HttpHandlerInterface
    *
    * @param ContainerInterface $container
    * @param RequestStack $requestStack
-   * @param DomainsManagement $domainsManagement
    * @param EventDispatcherInterface $dispatcher
    * @param Debug $debug
    */

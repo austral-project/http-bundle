@@ -168,7 +168,7 @@ Class DomainsManagement
         $this->domainMaster = $domainMaster;
         $this->currentDomain = $domainMaster;
         $this->setFilterDomainId($domainMaster->getId());
-        $this->domainsWithoutVirtual[$domain->getId()] = $domain;
+        $this->domainsWithoutVirtual[$domainMaster->getId()] = $domainMaster;
       }
     }
     $this->debug->stopWatchStop("austral.domain_management.initialize");
@@ -260,6 +260,7 @@ Class DomainsManagement
    */
   public function getReelDomainId(string $domainId = DomainsManagement::DOMAIN_ID_MASTER): ?string
   {
+    $domainId = $domainId === "current" ? $this->getCurrentDomain()->getId() : $domainId;
     return array_key_exists($domainId, $this->domainsIdByKeyname) ? $this->domainsIdByKeyname[$domainId] : $domainId;
   }
 
@@ -391,7 +392,7 @@ Class DomainsManagement
     /** @var DomainFilterMapping $domainFilterMapping */
     if($domainFilterMapping = $this->mapping->getEntityClassMapping($object->getClassnameForMapping(), DomainFilterMapping::class))
     {
-      if($domainFilterMapping->getAutoDomainId() && $domainFilterMapping->getAutoAttachement())
+      if($domainFilterMapping->getAutoDomainId() && $domainFilterMapping->getAutoAttachement() && $this->getFilterDomainId())
       {
         $object->setDomainId($this->getFilterDomainId());
       }
