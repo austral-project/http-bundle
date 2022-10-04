@@ -9,7 +9,9 @@
  */
  
 namespace Austral\HttpBundle\Admin;
+use App\Entity\Austral\HttpBundle\Domain;
 use Austral\EntityBundle\Entity\EntityInterface;
+use Austral\EntityBundle\Repository\EntityRepository;
 use Austral\FormBundle\Mapper\Fieldset;
 use Austral\FormBundle\Mapper\GroupFields;
 use Austral\HttpBundle\Entity\Interfaces\DomainInterface;
@@ -110,9 +112,17 @@ class DomainAdmin extends Admin implements AdminModuleInterface
           ))
         )
         ->add(Field\ChoiceField::create("isVirtual",
-          array(
-            "choices.status.no"         =>  false,
-            "choices.status.yes"        =>  true,
+            array(
+              "choices.status.no"         =>  false,
+              "choices.status.yes"        =>  true,
+            ),  array(
+            "attr"        =>  array(
+              "data-view-by-choices-parent"   =>  ".form-container",
+              "data-view-by-choices-children" =>  ".view-element-by-choices",
+              'data-view-by-choices' =>  json_encode(array(
+                true           =>  "domain-master",
+              ))
+            ),
           ))
         )
       ->end()
@@ -128,6 +138,22 @@ class DomainAdmin extends Admin implements AdminModuleInterface
           )
           ->add(Field\TextField::create("domain")->setGroupSize(GroupFields::SIZE_COL_10))
         ->end()
+        ->add(Field\EntityField::create("master", Domain::class,
+          array(
+            'query_builder'     => function (EntityRepository $er) use($formAdminEvent) {
+              $queryBuilder = $er->createQueryBuilder('root')
+                ->where("root.isVirtual = :isVirtual")
+                ->setParameter("isVirtual", false)
+                ->addOrderBy('root.name', 'ASC');
+              return $queryBuilder;
+            },
+            "container" =>  array('class'=>"view-element-by-choices domain-master"),
+            'choice_label' => 'name',
+            "required"  =>  $formAdminEvent->getFormMapper()->getObject()->getIsVirtual()
+          )
+        ))
+
+
         ->add(Field\TextField::create("keyname"))
         ->add(Field\TextField::create("name", array("entitled"=>"fields.nameDomain.entitled")))
         ->add(Field\TextField::create("language"))

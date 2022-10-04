@@ -139,7 +139,14 @@ Class DomainsManagement
         $this->domainsById[$domain->getId()] = $domain;
         if($this->getHost() === $domain->getDomain())
         {
-          $this->currentDomain = $domain;
+          if($domain->getIsVirtual() && $domain->getMaster())
+          {
+            $this->currentDomain = $domain->getMaster();
+          }
+          else
+          {
+            $this->currentDomain = $domain;
+          }
         }
         if(!$this->domainMaster && $domain->getIsMaster())
         {

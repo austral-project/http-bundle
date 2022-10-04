@@ -19,6 +19,8 @@ use Austral\EntityFileBundle\Annotation as AustralFile;
 use Austral\EntityBundle\Entity\Entity;
 use Austral\EntityBundle\Entity\EntityInterface;
 use Austral\EntityBundle\Entity\Traits\EntityTimestampableTrait;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;
 use Gedmo\Mapping\Annotation as Gedmo;
@@ -44,6 +46,18 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
    * @ORM\Id
    */
   protected $id;
+  
+  /**
+   * @var DomainInterface
+   * @ORM\ManyToOne(targetEntity="Austral\HttpBundle\Entity\Interfaces\DomainInterface", inversedBy="virtuals")
+   * @ORM\JoinColumn(name="master", referencedColumnName="id", onDelete="SET NULL")
+   */
+  protected DomainInterface $master;
+
+  /**
+   * @ORM\OneToMany(targetEntity="Austral\HttpBundle\Entity\Interfaces\DomainInterface", mappedBy="master", cascade={"persist", "remove"})
+   */
+  protected Collection $virtuals;
 
   /**
    * @var string|null
@@ -131,6 +145,7 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   {
     parent::__construct();
     $this->id = Uuid::uuid4()->toString();
+    $this->virtuals = new ArrayCollection();
   }
 
   /**
@@ -139,6 +154,44 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   public function __toString()
   {
     return $this->name ?? $this->domain;
+  }
+
+  /**
+   * @return DomainInterface
+   */
+  public function getMaster(): DomainInterface
+  {
+    return $this->master;
+  }
+
+  /**
+   * @param DomainInterface $master
+   *
+   * @return Domain
+   */
+  public function setMaster(DomainInterface $master): Domain
+  {
+    $this->master = $master;
+    return $this;
+  }
+
+  /**
+   * @return Collection
+   */
+  public function getVirtuals(): Collection
+  {
+    return $this->virtuals;
+  }
+
+  /**
+   * @param Collection $virtuals
+   *
+   * @return Domain
+   */
+  public function setVirtuals(Collection $virtuals): Domain
+  {
+    $this->virtuals = $virtuals;
+    return $this;
   }
 
   /**
@@ -400,5 +453,7 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
     $this->requestLanguage = $requestLanguage;
     return $this;
   }
+
+
 
 }
