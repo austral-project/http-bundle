@@ -117,6 +117,11 @@ interface DomainInterface
   public function setIsVirtual(bool $isVirtual): DomainInterface;
 
   /**
+   * @return bool
+   */
+  public function getIsRedirect(): bool;
+
+  /**
    * @return string|null
    */
   public function getRedirectUrl(): ?string;

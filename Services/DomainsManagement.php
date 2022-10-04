@@ -153,7 +153,7 @@ Class DomainsManagement
           $this->domainMaster = $domain;
           $this->domainsIdByKeyname[self::DOMAIN_ID_MASTER] = $domain->getId();
         }
-        if(!$domain->getIsVirtual())
+        if(!$domain->getIsVirtual() && !$domain->getIsRedirect())
         {
           $this->domainsWithoutVirtual[$domain->getId()] = $domain;
           $this->domainsIdByKeyname[$domain->getKeyname()] = $domain->getId();

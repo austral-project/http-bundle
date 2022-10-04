@@ -347,6 +347,14 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   }
 
   /**
+   * @return bool
+   */
+  public function getIsRedirect(): bool
+  {
+    return $this->getRedirectUrl() !== null;
+  }
+
+  /**
    * @return string|null
    */
   public function getRedirectUrl(): ?string
