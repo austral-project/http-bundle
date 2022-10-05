@@ -189,7 +189,8 @@ Class DomainsManagement
    */
   protected function createVirtualDomain(string $keyname): DomainInterface
   {
-    $domain = $this->domainEntityManager->create();
+    $domainClass = $this->domainEntityManager->getClass();
+    $domain = new $domainClass();
     $domain->setId($keyname);
     $domain->setName($keyname);
     $domain->setKeyname($keyname);

@@ -56,7 +56,7 @@ class EntityManagerListener
    *
    * @throws \Exception
    */
-  public function duplicateUrlParameter(EntityManagerEvent $entityManagerEvent)
+  public function duplicate(EntityManagerEvent $entityManagerEvent)
   {
     $routeParams = $this->httpRequest->getRequest()->attributes->get("_route_params");
     /** @var DomainFilterMapping $domainFilterMapping */

@@ -48,11 +48,11 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   protected $id;
   
   /**
-   * @var DomainInterface
+   * @var DomainInterface|null
    * @ORM\ManyToOne(targetEntity="Austral\HttpBundle\Entity\Interfaces\DomainInterface", inversedBy="virtuals")
    * @ORM\JoinColumn(name="master", referencedColumnName="id", onDelete="SET NULL")
    */
-  protected DomainInterface $master;
+  protected ?DomainInterface $master = null;
 
   /**
    * @ORM\OneToMany(targetEntity="Austral\HttpBundle\Entity\Interfaces\DomainInterface", mappedBy="master", cascade={"persist", "remove"})
@@ -157,9 +157,9 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   }
 
   /**
-   * @return DomainInterface
+   * @return DomainInterface|null
    */
-  public function getMaster(): DomainInterface
+  public function getMaster(): ?DomainInterface
   {
     return $this->master;
   }

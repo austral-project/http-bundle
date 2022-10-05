@@ -52,7 +52,7 @@ services:
     class:          Austral\HttpBundle\Listener\EntityManagerListener
     arguments:      ["@austral.entity.mapping", "@austral.http.domains.management", "@austral.http.request"]
     tags:
-      - { name: kernel.event_listener, event: "austral.entity_manager.duplicate", method: duplicateUrlParameter }
+      - { name: kernel.event_listener, event: "austral.entity_manager.duplicate", method: duplicate }
 
 ##### Configuration
   austral.http.config:
