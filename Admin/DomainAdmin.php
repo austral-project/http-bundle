@@ -158,6 +158,12 @@ class DomainAdmin extends Admin implements AdminModuleInterface
         ->add(Field\TextField::create("name", array("entitled"=>"fields.nameDomain.entitled")))
         ->add(Field\TextField::create("language"))
         ->add(Field\TextField::create("redirectUrl"))
+        ->add(Field\ChoiceField::create("redirectWithUri",
+          array(
+            "choices.status.no"         =>  false,
+            "choices.status.yes"        =>  true,
+          ))
+        )
         ->add(Field\UploadField::create("favicon"))
         ->addPopin("popup-editor-favicon", "favicon", array(
             "button"  =>  array(

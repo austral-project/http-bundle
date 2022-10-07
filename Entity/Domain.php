@@ -120,6 +120,12 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
 
   /**
    * @var boolean
+   * @ORM\Column(name="redirect_with_uri", type="boolean", nullable=false, options={"default": false})
+   */
+  protected bool $redirectWithUri = false;
+
+  /**
+   * @var boolean
    * @ORM\Column(name="one_page", type="boolean", nullable=true, options={"default": false})
    */
   protected bool $onePage = false;
@@ -370,6 +376,25 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   public function setRedirectUrl(?string $redirectUrl): Domain
   {
     $this->redirectUrl = $redirectUrl;
+    return $this;
+  }
+
+  /**
+   * @return bool
+   */
+  public function getRedirectWithUri(): bool
+  {
+    return $this->redirectWithUri;
+  }
+
+  /**
+   * @param bool $withUri
+   *
+   * @return Domain
+   */
+  public function setRedirectWithUri(bool $withUri): Domain
+  {
+    $this->redirectWithUri = $withUri;
     return $this;
   }
 

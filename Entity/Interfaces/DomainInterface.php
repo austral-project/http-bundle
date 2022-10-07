@@ -10,6 +10,8 @@
 
 namespace Austral\HttpBundle\Entity\Interfaces;
 
+use Doctrine\Common\Collections\Collection;
+
 /**
  * Austral Domain Interface.
  * @author Matthieu Beurel <matthieu@austral.dev>
@@ -19,6 +21,30 @@ interface DomainInterface
 
   const SCHEME_HTTPS = "https";
   const SCHEME_HTTP = "http";
+
+  /**
+   * @return DomainInterface|null
+   */
+  public function getMaster(): ?DomainInterface;
+
+  /**
+   * @param DomainInterface $master
+   *
+   * @return DomainInterface
+   */
+  public function setMaster(DomainInterface $master): DomainInterface;
+
+  /**
+   * @return Collection
+   */
+  public function getVirtuals(): Collection;
+
+  /**
+   * @param Collection $virtuals
+   *
+   * @return DomainInterface
+   */
+  public function setVirtuals(Collection $virtuals): DomainInterface;
 
   /**
    * @return string|null
@@ -132,6 +158,18 @@ interface DomainInterface
    * @return DomainInterface
    */
   public function setRedirectUrl(?string $redirectUrl): DomainInterface;
+
+  /**
+   * @return bool
+   */
+  public function getRedirectWithUri(): bool;
+
+  /**
+   * @param bool $withUri
+   *
+   * @return DomainInterface
+   */
+  public function setRedirectWithUri(bool $withUri): DomainInterface;
 
   /**
    * @return bool

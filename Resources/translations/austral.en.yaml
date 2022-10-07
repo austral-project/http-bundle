@@ -21,3 +21,5 @@ fields:
     entitled:                                   Favicon
   nameDomain:
     entitled:                                   Name
+  redirectWithUri:
+    entitled:                                   Keep url ?
