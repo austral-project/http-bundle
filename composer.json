@@ -4,7 +4,6 @@
   "description":                              "Http Austral Bundle",
   "keywords":                                 ["Austral", "http", "Symfony"],
   "license":                                  "MIT",
-  "version":                                  "3.0",
   "authors": [
     {
       "name":                                 "Matthieu Beurel",
