@@ -16,7 +16,6 @@ use Doctrine\Common\EventArgs;
 use Doctrine\Common\EventSubscriber;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\PostFlushEventArgs;
-use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\EntityManager;
 
 /**

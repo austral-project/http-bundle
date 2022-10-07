@@ -63,4 +63,12 @@ class AustralHttpExtension extends Extension
     }
   }
 
+  /**
+   * @return string
+   */
+  public function getNamespace(): string
+  {
+    return 'https://austral.app/schema/dic/austral_http';
+  }
+
 }
