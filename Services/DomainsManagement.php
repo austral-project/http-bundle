@@ -262,12 +262,13 @@ Class DomainsManagement
   }
 
   /**
-   * @param string $domainId
+   * @param string|null $domainId
    *
    * @return string|null
    */
-  public function getReelDomainId(string $domainId = DomainsManagement::DOMAIN_ID_MASTER): ?string
+  public function getReelDomainId(?string $domainId = DomainsManagement::DOMAIN_ID_MASTER): ?string
   {
+    $domainId = $domainId ?? DomainsManagement::DOMAIN_ID_MASTER;
     $domainId = $domainId === "current" ? $this->getCurrentDomain()->getId() : $domainId;
     return array_key_exists($domainId, $this->domainsIdByKeyname) ? $this->domainsIdByKeyname[$domainId] : $domainId;
   }
