@@ -90,6 +90,14 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
 
   /**
    * @var string|null
+   * @ORM\Column(name="logo", type="string", length=255, nullable=true)
+   * @AustralFile\UploadParameters(configName="page_image")
+   * @AustralFile\ImageSize(widthMin="0", heightMin="0")
+   */
+  protected ?string $logo = null;
+
+  /**
+   * @var string|null
    * @ORM\Column(name="scheme", type="string", length=255, nullable=true )
    */
   protected ?string $scheme = null;
@@ -273,6 +281,25 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   public function setFavicon(?string $favicon): Domain
   {
     $this->favicon = $favicon;
+    return $this;
+  }
+
+  /**
+   * @return string|null
+   */
+  public function getLogo(): ?string
+  {
+    return $this->logo;
+  }
+
+  /**
+   * @param string|null $logo
+   *
+   * @return Domain
+   */
+  public function setLogo(?string $logo): Domain
+  {
+    $this->logo = $logo;
     return $this;
   }
 
