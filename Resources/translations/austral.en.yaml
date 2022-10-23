@@ -19,6 +19,8 @@ fields:
     entitled:                                   Is virtual ?
   favicon:
     entitled:                                   Favicon
+  logo:
+    entitled:                                   Logo
   nameDomain:
     entitled:                                   Name
   redirectWithUri:

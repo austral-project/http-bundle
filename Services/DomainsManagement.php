@@ -152,6 +152,7 @@ Class DomainsManagement
         {
           $this->domainMaster = $domain;
           $this->domainsIdByKeyname[self::DOMAIN_ID_MASTER] = $domain->getId();
+          $this->setFilterDomainId($domain->getId());
         }
         if(!$domain->getIsVirtual() && !$domain->getIsRedirect())
         {
@@ -403,6 +404,7 @@ Class DomainsManagement
     {
       if($domainFilterMapping->getAutoDomainId() && $domainFilterMapping->getAutoAttachement() && $this->getFilterDomainId())
       {
+        dump('ici2');
         $object->setDomainId($this->getFilterDomainId());
       }
       if($withChild)
