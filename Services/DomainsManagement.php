@@ -404,7 +404,6 @@ Class DomainsManagement
     {
       if($domainFilterMapping->getAutoDomainId() && $domainFilterMapping->getAutoAttachement() && $this->getFilterDomainId())
       {
-        dump('ici2');
         $object->setDomainId($this->getFilterDomainId());
       }
       if($withChild)
