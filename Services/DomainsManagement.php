@@ -404,7 +404,10 @@ Class DomainsManagement
     {
       if($domainFilterMapping->getAutoDomainId() && $domainFilterMapping->getAutoAttachement() && $this->getFilterDomainId())
       {
-        $object->setDomainId($this->getFilterDomainId());
+        if(!$object->getDomainId())
+        {
+          $object->setDomainId($this->getFilterDomainId());
+        }
       }
       if($withChild)
       {
