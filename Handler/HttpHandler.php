@@ -218,7 +218,7 @@ abstract class HttpHandler implements HttpHandlerInterface
    */
   public function getUser()
   {
-    return $this->tokenStorage->getToken()->getUser();
+    return $this->tokenStorage->getToken() ? $this->tokenStorage->getToken()->getUser() : null;
   }
 
   /**
