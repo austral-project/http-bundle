@@ -26,6 +26,7 @@ use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Translation\IdentityTranslator;
 
 use \LogicException;
@@ -61,6 +62,11 @@ abstract class HttpHandler implements HttpHandlerInterface
   protected EventDispatcherInterface $dispatcher;
 
   /**
+   * @var TokenStorageInterface
+   */
+  protected TokenStorageInterface $tokenStorage;
+
+  /**
    * @var HttpTemplateParametersInterface
    */
   protected HttpTemplateParametersInterface $templateParameters;
@@ -92,17 +98,20 @@ abstract class HttpHandler implements HttpHandlerInterface
    * @param ContainerInterface $container
    * @param RequestStack $requestStack
    * @param EventDispatcherInterface $dispatcher
+   * @param TokenStorageInterface $tokenStorage
    * @param Debug $debug
    */
   public function __construct(ContainerInterface $container,
     RequestStack $requestStack,
     EventDispatcherInterface $dispatcher,
+    TokenStorageInterface $tokenStorage,
     Debug $debug
   )
   {
     $this->container = $container;
     $this->dispatcher = $dispatcher;
     $this->request = $requestStack->getCurrentRequest();
+    $this->tokenStorage = $tokenStorage;
     $this->debug = $debug;
   }
 
@@ -209,7 +218,7 @@ abstract class HttpHandler implements HttpHandlerInterface
    */
   public function getUser()
   {
-    return $this->container->get('security.token_storage')->getToken()->getUser();
+    return $this->tokenStorage->getToken()->getUser();
   }
 
   /**

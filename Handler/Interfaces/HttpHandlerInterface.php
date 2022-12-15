@@ -24,6 +24,7 @@ use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Translation\IdentityTranslator;
 
 /**
@@ -39,9 +40,15 @@ interface HttpHandlerInterface
    * @param ContainerInterface $container
    * @param RequestStack $request
    * @param EventDispatcherInterface $dispatcher
+   * @param TokenStorageInterface $tokenStorage
    * @param Debug $debug
    */
-  public function __construct(ContainerInterface $container, RequestStack $request, EventDispatcherInterface $dispatcher, Debug $debug);
+  public function __construct(ContainerInterface $container,
+    RequestStack $request,
+    EventDispatcherInterface $dispatcher,
+    TokenStorageInterface $tokenStorage,
+    Debug $debug
+  );
 
   /**
    * Get request

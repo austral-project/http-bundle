@@ -22,8 +22,6 @@ interface HttpControllerInterface
 
   /**
    * @param ContainerInterface|null $container
-   *
-   * @return mixed
    */
   public function setContainer(ContainerInterface $container = null);
 
