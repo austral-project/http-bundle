@@ -88,6 +88,11 @@ interface HttpHandlerInterface
   public function setDispatcher(EventDispatcherInterface $dispatcher): HttpHandlerInterface;
 
   /**
+   * executeHandlerMethod
+   */
+  public function executeHandlerMethod();
+
+  /**
    * @return EntityManagerInterface|null
    */
   public function getEntityManager(): ?EntityManagerInterface;

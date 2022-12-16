@@ -175,6 +175,16 @@ abstract class HttpHandler implements HttpHandlerInterface
   }
 
   /**
+   * executeHandlerMethod
+   */
+  public function executeHandlerMethod()
+  {
+    if(method_exists($this, $this->handlerMethod)) {
+      call_user_func_array(array($this, $this->handlerMethod), func_get_args());
+    }
+  }
+
+  /**
    * @return EntityManager|null
    */
   public function getEntityManager(): ?EntityManager
