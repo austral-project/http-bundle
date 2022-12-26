@@ -86,6 +86,19 @@ abstract class HttpTemplateParametersParameters implements HttpTemplateParameter
   }
 
   /**
+   * Get parameters
+   *
+   * @param string $key
+   * @param null $default
+   *
+   * @return mixed
+   */
+  public function getParameter(string $key, $default = null)
+  {
+    return array_key_exists($key, $this->parameters) ? $this->parameters[$key] : $default;
+  }
+
+  /**
    * @param array $parameters
    *
    * @return $this

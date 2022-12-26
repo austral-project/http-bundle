@@ -162,6 +162,7 @@ class HttpListener
         if($this->httpEvent->getHandler()) {
           $this->eventDispatcher->dispatch($this->httpEvent, $this->httpEvent::EVENT_AUSTRAL_HTTP_CONTROLLER);
           $controller->setHandlerManager($this->httpEvent->getHandler());
+          $controller->setTemplateParameters($this->httpEvent->getHandler()->getTemplateParameters());
         }
       }
     }

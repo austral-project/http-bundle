@@ -44,6 +44,17 @@ interface HttpTemplateParametersInterface
    * @return array
    */
   public function getParameters(): array;
+
+  /**
+   * Get parameters
+   *
+   * @param string $key
+   * @param null $default
+   *
+   * @return mixed
+   */
+  public function getParameter(string $key, $default = null);
+
   /**
    * @param array $parameters
    *
