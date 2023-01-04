@@ -10,7 +10,6 @@
 
 namespace Austral\HttpBundle\Controller;
 
-use Austral\AdminBundle\Template\Interfaces\TemplateParametersInterface;
 use Austral\HttpBundle\Controller\Interfaces\HttpControllerInterface;
 use Austral\HttpBundle\Handler\Interfaces\HttpHandlerInterface;
 use Austral\HttpBundle\Template\Interfaces\HttpTemplateParametersInterface;
@@ -96,6 +95,14 @@ abstract class HttpController implements HttpControllerInterface, ContainerAware
   protected function generateUrl(string $route, array $parameters = [], int $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH): string
   {
     return $this->container->get('router')->generate($route, $parameters, $referenceType);
+  }
+
+  /**
+   * @return User|UserInterface|null
+   */
+  public function getUser()
+  {
+    return $this->get("security.token_storage")->getToken() ? $this->get("security.token_storage")->getToken()->getUser() : null;
   }
 
   /**
