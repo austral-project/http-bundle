@@ -96,6 +96,32 @@ class HttpListener
     /** @var AttributeBagInterface $requestAttributes */
     $requestAttributes = $event->getRequest()->attributes;
 
+    $data = array();
+    if (str_starts_with($event->getRequest()->headers->get('Content-Type'), 'application/json')) {
+      $data = json_decode($event->getRequest()->getContent(), true);
+    }
+    if($data && count($data) > 0)
+    {
+      foreach($data as $key => $values)
+      {
+        if(is_array($values))
+        {
+          foreach ($values as $keyValue => $value)
+          {
+            if(is_array($value))
+            {
+              foreach($value as $subKey => $subValue)
+              {
+                $values["{$keyValue}".ucfirst($subKey)] = $subValue;
+              }
+              unset($values[$keyValue]);
+            }
+          }
+        }
+        $event->getRequest()->request->set($key, $values);
+      }
+    }
+
     $this->httpRequest->setRequest($event->getRequest());
     $this->httpRequest->setCompressionGzipEnabled(true);
     if($httpEventName = $requestAttributes->get('_austral_http_event'))
