@@ -30,6 +30,7 @@ Class DomainsManagement
 
   const DOMAIN_ID_FOR_ALL_DOMAINS = "for-all-domains";
   const DOMAIN_ID_MASTER = "master";
+  const DOMAIN_ID_CURRENT = "current";
 
   /**
    * @var DomainEntityManager
