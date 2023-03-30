@@ -126,7 +126,7 @@ Class DomainsManagement
    * @return $this
    * @throws QueryException
    */
-  public function initialize(): DomainsManagement
+  public function initialize(bool $detectAutoHost = true): DomainsManagement
   {
     $this->debug->stopWatchStart("austral.domain_management.initialize", "austral.http.domain_management");
     if(!$this->domains)
@@ -138,7 +138,7 @@ Class DomainsManagement
       {
         $domain->setRequestLanguage($this->httpRequest->getLanguage());
         $this->domainsById[$domain->getId()] = $domain;
-        if($this->getHost() === $domain->getDomain())
+        if($this->getHost() === $domain->getDomain() && $detectAutoHost)
         {
           if($domain->getIsVirtual() && $domain->getMaster())
           {
