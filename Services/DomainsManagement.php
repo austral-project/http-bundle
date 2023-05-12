@@ -123,6 +123,15 @@ Class DomainsManagement
   }
 
   /**
+   * getHttpRequest
+   * @return HttpRequest
+   */
+  public function getHttpRequest(): HttpRequest
+  {
+    return $this->httpRequest;
+  }
+
+  /**
    * @return $this
    * @throws QueryException
    */
