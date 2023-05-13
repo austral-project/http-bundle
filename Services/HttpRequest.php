@@ -31,6 +31,11 @@ Class HttpRequest
   protected ?string $language = null;
 
   /**
+   * @var array
+   */
+  protected array $multiLanguages = array();
+
+  /**
    * @var Request|null
    */
   protected ?Request $request = null;
@@ -65,6 +70,15 @@ Class HttpRequest
   {
     $this->language = $language;
     return $this;
+  }
+
+  /**
+   * getMultiLanguages
+   * @return array
+   */
+  public function getMultiLanguages(): array
+  {
+    return $this->httpConfiguration->get('languages', array());
   }
 
   /**
