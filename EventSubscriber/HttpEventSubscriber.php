@@ -23,7 +23,6 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 /**
  * Austral Http EventSubscriber.
  * @author Matthieu Beurel <matthieu@austral.dev>
- * @final
  */
 abstract class HttpEventSubscriber implements EventSubscriberInterface, HttpEventSubscriberInterface
 {
