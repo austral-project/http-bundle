@@ -40,6 +40,13 @@ interface HttpTemplateParametersInterface
   public function removeParameters(string $key): HttpTemplateParametersInterface;
 
   /**
+   * @param string $key
+   *
+   * @return bool
+   */
+  public function hasParameter(string $key): bool;
+
+  /**
    * Get parameters
    * @return array
    */
