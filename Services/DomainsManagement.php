@@ -85,6 +85,11 @@ Class DomainsManagement
   /**
    * @var DomainInterface|null
    */
+  protected ?DomainInterface $currentDomainWithVirtual = null;
+
+  /**
+   * @var DomainInterface|null
+   */
   protected ?DomainInterface $domainMaster = null;
 
   /**
@@ -149,6 +154,7 @@ Class DomainsManagement
         $this->domainsById[$domain->getId()] = $domain;
         if($this->getHost() === $domain->getDomain() && $detectAutoHost)
         {
+          $this->currentDomainWithVirtual = $domain;
           if($domain->getIsVirtual() && $domain->getMaster())
           {
             $this->currentDomain = $domain->getMaster();
@@ -164,9 +170,12 @@ Class DomainsManagement
           $this->domainsIdByKeyname[self::DOMAIN_ID_MASTER] = $domain->getId();
           $this->setFilterDomainId($domain->getId());
         }
-        if(!$domain->getIsVirtual() && !$domain->getIsRedirect())
+        if(!$domain->getIsRedirect())
         {
-          $this->domainsWithoutVirtual[$domain->getId()] = $domain;
+          if(!$domain->getIsVirtual())
+          {
+            $this->domainsWithoutVirtual[$domain->getId()] = $domain;
+          }
           $this->domainsIdByKeyname[$domain->getKeyname()] = $domain->getId();
           $requestContext = new RequestContext();
           if($this->httpRequest->getRequest())
@@ -246,11 +255,13 @@ Class DomainsManagement
   }
 
   /**
+   * @param bool $withoutVirtual
+   *
    * @return DomainInterface|null
    */
-  public function getCurrentDomain(): ?DomainInterface
+  public function getCurrentDomain(bool $withoutVirtual = true): ?DomainInterface
   {
-    return $this->currentDomain;
+    return $withoutVirtual ? $this->currentDomain : $this->currentDomainWithVirtual;
   }
 
   /**
@@ -274,13 +285,14 @@ Class DomainsManagement
 
   /**
    * @param string|null $domainId
+   * @param bool $withoutVirtual
    *
    * @return string|null
    */
-  public function getReelDomainId(?string $domainId = DomainsManagement::DOMAIN_ID_MASTER): ?string
+  public function getReelDomainId(?string $domainId = DomainsManagement::DOMAIN_ID_MASTER, bool $withoutVirtual = true): ?string
   {
     $domainId = $domainId ?? DomainsManagement::DOMAIN_ID_MASTER;
-    $domainId = $domainId === "current" ? $this->getCurrentDomain()->getId() : $domainId;
+    $domainId = $domainId === "current" ? $this->getCurrentDomain($withoutVirtual)->getId() : $domainId;
     return array_key_exists($domainId, $this->domainsIdByKeyname) ? $this->domainsIdByKeyname[$domainId] : $domainId;
   }
 
@@ -369,12 +381,13 @@ Class DomainsManagement
 
   /**
    * @param string $domainId
+   * @param bool $withoutVirtual
    *
    * @return RequestContext|null
    */
-  public function getRequestContextByDomainId(string $domainId): ?RequestContext
+  public function getRequestContextByDomainId(string $domainId, bool $withoutVirtual = true): ?RequestContext
   {
-    return AustralTools::getValueByKey($this->requestContextByDomainId, $this->getReelDomainId($domainId));
+    return AustralTools::getValueByKey($this->requestContextByDomainId, $this->getReelDomainId($domainId, $withoutVirtual));
   }
 
   /**
