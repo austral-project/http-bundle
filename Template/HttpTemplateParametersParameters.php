@@ -29,6 +29,11 @@ abstract class HttpTemplateParametersParameters implements HttpTemplateParameter
    */
   protected ?string $path = null;
 
+  /**
+   * @var string|null
+   */
+  protected ?string $name = "default";
+
 
   public function __construct()
   {
@@ -39,7 +44,25 @@ abstract class HttpTemplateParametersParameters implements HttpTemplateParameter
    */
   public function __serialize()
   {
-    return array_merge($this->parameters, array());
+    return array_merge($this->getParameters(), array());
+  }
+
+  /**
+   * @return string|null
+   */
+  public function getName(): ?string
+  {
+    return $this->name;
+  }
+
+  /**
+   * @param string|null $name
+   * @return $this
+   */
+  public function setName(?string $name): HttpTemplateParametersParameters
+  {
+    $this->name = $name;
+    return $this;
   }
 
   /**
@@ -94,7 +117,12 @@ abstract class HttpTemplateParametersParameters implements HttpTemplateParameter
    */
   public function getParameters(): array
   {
-    return $this->parameters;
+    $parameters = $this->parameters;
+    $parameters["template"] = array(
+      "path"  =>  $this->path,
+      "name"  =>  $this->name
+    );
+    return $parameters;
   }
 
   /**
