@@ -6,6 +6,11 @@ austral_http:
 
   protocol:                 https
 
+  env:
+    current:                prod
+    list:
+      -                     prod
+
   compression_gzip:
     admin:                  true
     website:                true

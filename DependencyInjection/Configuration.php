@@ -36,6 +36,14 @@ class Configuration implements ConfigurationInterface
     $node->arrayNode("languages")
       ->scalarPrototype()->end()
     ->end();
+
+    $node->arrayNode("env")
+      ->children()
+        ->scalarNode("current")->end()
+        ->arrayNode("list")
+          ->scalarPrototype()->end()
+        ->end()
+      ->end();
     $node->arrayNode("compression_gzip")
         ->children()
           ->booleanNode("admin")->end()
@@ -53,9 +61,15 @@ class Configuration implements ConfigurationInterface
   public function getConfigDefault(): array
   {
     return array(
-      "protocol"    =>  "https",
+      "protocol"            =>  "https",
       "default_language"    =>  "en",
-      "languages"            =>  array(
+      "languages"           =>  array(
+      ),
+      "env"                 =>  array(
+        "current"   =>  "prod",
+        "list"      =>  array(
+          "prod"
+        )
       ),
       "compression_gzip"    =>  array(
         "admin"   =>  true,

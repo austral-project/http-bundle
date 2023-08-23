@@ -59,6 +59,7 @@ class DomainAdmin extends Admin implements AdminModuleInterface
         });
       })
       ->addColumn(new Column\Value("domain"))
+      ->addColumn(new Column\Value("domainEnv"))
       ->addColumn(new Column\SwitchValue("isEnabled", null, 0, 1,
           $listAdminEvent->getCurrentModule()->generateUrl("change"),
           $listAdminEvent->getCurrentModule()->isGranted("edit")
@@ -89,6 +90,11 @@ class DomainAdmin extends Admin implements AdminModuleInterface
    */
   public function configureFormMapper(FormAdminEvent $formAdminEvent)
   {
+    $domainEnvs = array();
+    foreach($this->container->get('austral.http.config')->get("env.list") as $env)
+    {
+      $domainEnvs[$env] = $env;
+    }
     $formAdminEvent->getFormMapper()
       ->addFieldset("fieldset.right")
         ->setPositionName(Fieldset::POSITION_RIGHT)
@@ -136,7 +142,13 @@ class DomainAdmin extends Admin implements AdminModuleInterface
               )
             )->setGroupSize(GroupFields::SIZE_COL_2)
           )
-          ->add(Field\TextField::create("domain")->setGroupSize(GroupFields::SIZE_COL_10))
+          ->add(Field\TextField::create("domain")->setGroupSize(GroupFields::SIZE_COL_8))
+
+          ->add(Field\SelectField::create('domainEnv', $domainEnvs, array(
+                'required' => true
+              )
+            )->setGroupSize(GroupFields::SIZE_COL_2)
+          )
         ->end()
         ->add(Field\EntityField::create("master", Domain::class,
           array(
@@ -147,6 +159,7 @@ class DomainAdmin extends Admin implements AdminModuleInterface
                 ->addOrderBy('root.name', 'ASC');
               return $queryBuilder;
             },
+            'entitled'  =>  "fields.domainMaster.entitled",
             "container" =>  array('class'=>"view-element-by-choices domain-master"),
             'choice_label' => 'name',
             "required"  =>  $formAdminEvent->getFormMapper()->getObject()->getIsVirtual()

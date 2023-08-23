@@ -9,6 +9,8 @@ fields:
     entitled:                                   Domain
   isMaster:
     entitled:                                   Is master ?
+  domainMaster:
+    entitled:                                   Master Domain
   onePage:
     entitled:                                   Has unique page ?
   scheme:

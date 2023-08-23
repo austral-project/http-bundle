@@ -83,6 +83,36 @@ interface DomainInterface
   public function setKeyname(?string $keyname): DomainInterface;
 
   /**
+   * getDomainEnv
+   *
+   * @return string
+   */
+  public function getDomainEnv(): string;
+
+  /**
+   * setDomainEnv
+   *
+   * @param string $domainEnv
+   * @return DomainInterface
+   */
+  public function setDomainEnv(string $domainEnv): DomainInterface;
+
+  /**
+   * getDomainsByEnv
+   *
+   * @return array
+   */
+  public function getDomainsByEnv(): array;
+
+  /**
+   * getDomainByEnv
+   *
+   * @param string $env
+   * @return DomainInterface
+   */
+  public function getDomainByEnv(string $env): DomainInterface;
+
+  /**
    * @return string|null
    */
   public function getFavicon(): ?string;

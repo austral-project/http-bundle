@@ -1,27 +1,31 @@
 pages:
   names:
     domain:
-      singular:                                 Domaine
-      plural:                                   Domaines
+      singular:                                                       Domaine
+      plural:                                                           Domaines
 
 fields:
   domain:
-    entitled:                                   Domaine
+    entitled:                                                                               Domaine
   isMaster:
-    entitled:                                   Est le domaine principal ?
+    entitled:                                                                               Est le domaine principal ?
+  domainMaster:
+    entitled:                                                                               Domaine principal
   onePage:
-    entitled:                                   N'a qu'une seule page ?
+    entitled:                                                                               N'a qu'une seule page ?
   scheme:
-    entitled:                                   Scheme
+    entitled:                                                                               Scheme
   redirectUrl:
-    entitled:                                   Url de redirection
+    entitled:                                                                               Url de redirection
   isVirtual:
-    entitled:                                   Est virtuel ?
+    entitled:                                                                               Est virtuel ?
   favicon:
-    entitled:                                   Favicon
+    entitled:                                                                               Favicon
   logo:
-    entitled:                                   Logo
+    entitled:                                                                               Logo
   nameDomain:
-    entitled:                                   Nom
+    entitled:                                                                               Nom
   redirectWithUri:
-    entitled:                                   Conserver l'url ?
+    entitled:                                                                               Conserver l'url ?
+  domainEnv:
+    entitled:                         Env

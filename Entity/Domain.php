@@ -19,6 +19,7 @@ use Austral\EntityFileBundle\Annotation as AustralFile;
 use Austral\EntityBundle\Entity\Entity;
 use Austral\EntityBundle\Entity\EntityInterface;
 use Austral\EntityBundle\Entity\Traits\EntityTimestampableTrait;
+use Austral\ToolsBundle\AustralTools;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -76,6 +77,12 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
    * @ORM\Column(name="keyname", type="string", length=255, nullable=false)
    */
   protected ?string $keyname = null;
+
+  /**
+   * @var string|null
+   * @ORM\Column(name="domain_env", type="string", length=255, nullable=false, options={"default": "prod"})
+   */
+  protected string $domainEnv = "prod";
 
   /**
    * @var string|null
@@ -209,6 +216,42 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   }
 
   /**
+   * getDomainsByEnv
+   *
+   * @return array
+   */
+  public function getDomainsByEnv(): array
+  {
+    if($this->getMaster())
+    {
+      return $this->getMaster()->getDomainsByEnv();
+    }
+    $domainsByEnv = array();
+    $domainsByEnv[$this->getDomainEnv()] = $this;
+    /** @var DomainInterface $virtual */
+    foreach($this->getVirtuals() as $virtual)
+    {
+      $domainsByEnv[$virtual->getDomainEnv()] = $virtual;
+    }
+    return $domainsByEnv;
+  }
+
+  /**
+   * getDomainByEnv
+   *
+   * @param string $env
+   * @return DomainInterface
+   */
+  public function getDomainByEnv(string $env): DomainInterface
+  {
+    if($this->getMaster())
+    {
+      return $this->getMaster()->getDomainByEnv($env);
+    }
+    return AustralTools::getValueByKey($this->getDomainsByEnv(), $env, $this);
+  }
+
+  /**
    * @return string|null
    */
   public function getDomain(): ?string
@@ -262,6 +305,28 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   public function setKeyname(?string $keyname): Domain
   {
     $this->keyname = $this->keynameGenerator($keyname);
+    return $this;
+  }
+
+  /**
+   * getDomainEnv
+   *
+   * @return string
+   */
+  public function getDomainEnv(): string
+  {
+    return $this->domainEnv;
+  }
+
+  /**
+   * setDomainEnv
+   *
+   * @param string $domainEnv
+   * @return $this
+   */
+  public function setDomainEnv(string $domainEnv): Domain
+  {
+    $this->domainEnv = $domainEnv;
     return $this;
   }
 
