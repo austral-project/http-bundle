@@ -227,12 +227,12 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
       return $this->getMaster()->getDomainsByEnv();
     }
     $domainsByEnv = array();
-    $domainsByEnv[$this->getDomainEnv()] = $this;
     /** @var DomainInterface $virtual */
     foreach($this->getVirtuals() as $virtual)
     {
       $domainsByEnv[$virtual->getDomainEnv()] = $virtual;
     }
+    $domainsByEnv[$this->getDomainEnv()] = $this;
     return $domainsByEnv;
   }
 
