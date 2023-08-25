@@ -170,6 +170,16 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   }
 
   /**
+   * urlParameterStatusName
+   *
+   * @return string
+   */
+  public function getUrlParameterStatusName(): string
+  {
+    return $this->name ?? $this->domain;
+  }
+
+  /**
    * @return string
    */
   public function __toString()
