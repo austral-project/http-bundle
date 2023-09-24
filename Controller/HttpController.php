@@ -26,6 +26,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Translation\IdentityTranslator;
+use Twig\Environment;
 
 
 /**
@@ -41,6 +42,21 @@ abstract class HttpController implements HttpControllerInterface, ContainerAware
    * @var HttpHandlerInterface
    */
   protected HttpHandlerInterface $handlerManager;
+
+  /**
+   * @var Environment|null
+   */
+  protected ?Environment $twig = null;
+
+  /**
+   * HttpController constructor
+   *
+   * @param Environment|null $twig
+   */
+  public function __construct(?Environment $twig = null)
+  {
+    $this->twig = $twig;
+  }
 
   /**
    * @param HttpHandlerInterface $handlerManager
@@ -98,9 +114,9 @@ abstract class HttpController implements HttpControllerInterface, ContainerAware
   }
 
   /**
-   * @return User|UserInterface|null
+   * @return UserInterface|null
    */
-  public function getUser()
+  public function getUser(): ?UserInterface
   {
     return $this->get("security.token_storage")->getToken() ? $this->get("security.token_storage")->getToken()->getUser() : null;
   }
@@ -168,10 +184,10 @@ abstract class HttpController implements HttpControllerInterface, ContainerAware
         $session->getFlashBag()->clear();
       }
     }
-    if (!$this->container->has('twig')) {
+    if (!$this->twig) {
       throw new \LogicException('You can not use the "renderView" method if the Twig Bundle is not available. Try running "composer require symfony/twig-bundle".');
     }
-    return $this->container->get('twig')->render($view, $parameters);
+    return $this->twig->render($view, $parameters);
   }
 
   /**
