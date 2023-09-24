@@ -21,7 +21,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -37,18 +37,24 @@ interface HttpHandlerInterface
   /**
    * AdminHandlerInterface constructor.
    *
-   * @param ContainerInterface $container
    * @param RequestStack $request
    * @param EventDispatcherInterface $dispatcher
    * @param TokenStorageInterface $tokenStorage
-   * @param Debug $debug
+   * @param Debug|null $debug
    */
-  public function __construct(ContainerInterface $container,
-    RequestStack $request,
+  public function __construct(RequestStack $request,
     EventDispatcherInterface $dispatcher,
     TokenStorageInterface $tokenStorage,
-    Debug $debug
+    ?Debug $debug
   );
+
+  /**
+   * setContainer
+   *
+   * @param ContainerInterface $container
+   * @return $this
+   */
+  public function setContainer(ContainerInterface $container): HttpHandlerInterface;
 
   /**
    * Get request
@@ -161,9 +167,9 @@ interface HttpHandlerInterface
   public function addFlash(string $type, $message): void;
 
   /**
-   * @return Session|null
+   * @return SessionInterface|null
    */
-  public function getSession(): ?Session;
+  public function getSession(): ?SessionInterface;
 
   /**
    * @return object|IdentityTranslator|null

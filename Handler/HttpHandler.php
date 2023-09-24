@@ -23,7 +23,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -88,31 +88,40 @@ abstract class HttpHandler implements HttpHandlerInterface
   protected ?string $userTabId = null;
 
   /**
-   * @var Debug
+   * @var Debug|null
    */
-  protected Debug $debug;
+  protected ?Debug $debug;
 
   /**
    * Handler constructor.
    *
-   * @param ContainerInterface $container
    * @param RequestStack $requestStack
    * @param EventDispatcherInterface $dispatcher
    * @param TokenStorageInterface $tokenStorage
-   * @param Debug $debug
+   * @param Debug|null $debug
    */
-  public function __construct(ContainerInterface $container,
-    RequestStack $requestStack,
+  public function __construct(RequestStack $requestStack,
     EventDispatcherInterface $dispatcher,
     TokenStorageInterface $tokenStorage,
-    Debug $debug
+    ?Debug $debug
   )
   {
-    $this->container = $container;
     $this->dispatcher = $dispatcher;
     $this->request = $requestStack->getCurrentRequest();
     $this->tokenStorage = $tokenStorage;
     $this->debug = $debug;
+  }
+
+  /**
+   * setContainer
+   *
+   * @param ContainerInterface $container
+   * @return $this
+   */
+  public function setContainer(ContainerInterface $container): HttpHandler
+  {
+    $this->container = $container;
+    return $this;
   }
 
   /**
@@ -299,9 +308,9 @@ abstract class HttpHandler implements HttpHandlerInterface
   }
 
   /**
-   * @return Session|null
+   * @return SessionInterface|null
    */
-  public function getSession(): ?Session
+  public function getSession(): ?SessionInterface
   {
     return $this->request->getSession();
   }
