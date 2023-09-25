@@ -36,11 +36,20 @@ services:
     tags:
       - { name: kernel.event_listener, event: "austral.event.entity.initialise.mapping", method: mapping }
 
+  ##### Entity Manager Listener
+  austral.http.entity_manager.listener:
+    class:          Austral\HttpBundle\Listener\EntityManagerListener
+    arguments:      ["@austral.entity.mapping", "@austral.http.domains.management", "@austral.http.request"]
+    tags:
+      - { name: kernel.event_listener, event: "austral.entity_manager.duplicate", method: duplicate }
+
 ##### Http Services
+  Austral\HttpBundle\Services\HttpRequest: "@austral.http.request"
   austral.http.request:
     class:          Austral\HttpBundle\Services\HttpRequest
     arguments:      [ "@austral.http.config" ]
 
+  Austral\HttpBundle\Services\DomainsManagement: "@austral.http.domains.management"
   austral.http.domains.management:
     class:          Austral\HttpBundle\Services\DomainsManagement
     arguments:
@@ -49,19 +58,14 @@ services:
       - "@austral.http.request"
       - "@austral.tools.debug"
 
-##### Entity Manager Listener
-  austral.http.entity_manager.listener:
-    class:          Austral\HttpBundle\Listener\EntityManagerListener
-    arguments:      ["@austral.entity.mapping", "@austral.http.domains.management", "@austral.http.request"]
-    tags:
-      - { name: kernel.event_listener, event: "austral.entity_manager.duplicate", method: duplicate }
-
 ##### Configuration
+  Austral\HttpBundle\Configuration\HttpConfiguration: "@austral.http.config"
   austral.http.config:
     class:      Austral\HttpBundle\Configuration\HttpConfiguration
     arguments:  [ "%austral_http%" ]
 
 ##### Domain Entity Manager
+  Austral\HttpBundle\EntityManager\DomainEntityManager: "@austral.entity_manager.domain"
   austral.entity_manager.domain:
     class:          Austral\HttpBundle\EntityManager\DomainEntityManager
     arguments:      [ "@doctrine.orm.entity_manager",  "@event_dispatcher", "%austral.entity.domain.class%" ]
