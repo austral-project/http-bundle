@@ -59,6 +59,18 @@ abstract class HttpController implements HttpControllerInterface, ContainerAware
   }
 
   /**
+   * setTwig
+   *
+   * @param Environment|null $twig
+   * @return HttpController
+   */
+  public function setTwig(?Environment $twig = null): HttpController
+  {
+    $this->twig = $twig;
+    return $this;
+  }
+
+  /**
    * @param HttpHandlerInterface $handlerManager
    *
    * @return HttpController
