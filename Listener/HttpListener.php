@@ -104,20 +104,6 @@ class HttpListener
     {
       foreach($data as $key => $values)
       {
-        if(is_array($values))
-        {
-          foreach ($values as $keyValue => $value)
-          {
-            if(is_array($value))
-            {
-              foreach($value as $subKey => $subValue)
-              {
-                $values["{$keyValue}".ucfirst($subKey)] = $subValue;
-              }
-              unset($values[$keyValue]);
-            }
-          }
-        }
         $event->getRequest()->request->set($key, $values);
       }
     }
