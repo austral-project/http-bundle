@@ -171,8 +171,8 @@ class HttpListener
       $controller = $this->isHttpController($eventController[0]);
       if($controller && $this->httpEvent) {
         $this->httpEvent->setKernelEvent($controllerEvent);
+        $this->eventDispatcher->dispatch($this->httpEvent, $this->httpEvent::EVENT_AUSTRAL_HTTP_CONTROLLER);
         if($this->httpEvent->getHandler()) {
-          $this->eventDispatcher->dispatch($this->httpEvent, $this->httpEvent::EVENT_AUSTRAL_HTTP_CONTROLLER);
           $controller->setHandlerManager($this->httpEvent->getHandler());
           $controller->setTemplateParameters($this->httpEvent->getHandler()->getTemplateParameters());
         }
@@ -190,9 +190,7 @@ class HttpListener
     if($this->httpEvent && $responseEvent->isMainRequest()) {
       $this->httpEvent->setKernelEvent($responseEvent);
 
-      if($this->httpEvent->getHandler()) {
-        $this->eventDispatcher->dispatch($this->httpEvent, $this->httpEvent::EVENT_AUSTRAL_HTTP_RESPONSE);
-      }
+      $this->eventDispatcher->dispatch($this->httpEvent, $this->httpEvent::EVENT_AUSTRAL_HTTP_RESPONSE);
       $response = $responseEvent->getResponse();
       if($this->httpRequest->getIsCompressionGzipEnabled()) {
         $encodings = $responseEvent->getRequest()->getEncodings();
