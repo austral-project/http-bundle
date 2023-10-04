@@ -91,6 +91,10 @@ class HttpListener
    */
   public function initRequest(RequestEvent $event)
   {
+    if($event->getRequest()->headers->get('x-austral-cache-checked'))
+    {
+      return;
+    }
     $this->debug->stopWatchStart("init-request", "austral.http.listener");
 
     /** @var AttributeBagInterface $requestAttributes */
@@ -135,6 +139,10 @@ class HttpListener
    */
   public function onRequest(RequestEvent $event)
   {
+    if($event->getRequest()->headers->get('x-austral-cache-checked'))
+    {
+      return;
+    }
     $this->httpRequest->setRequest($event->getRequest());
     $this->debug->stopWatchStart("request", "austral.http.listener");
     if($this->httpEvent && $event->isMainRequest()) {
