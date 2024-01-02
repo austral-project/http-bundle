@@ -122,11 +122,29 @@ class DomainAdmin extends Admin implements AdminModuleInterface
               "choices.status.no"         =>  false,
               "choices.status.yes"        =>  true,
             ),  array(
+            "container" =>  array('class'=>"view-element-by-choices-language domain-not-language"),
             "attr"        =>  array(
               "data-view-by-choices-parent"   =>  ".form-container",
               "data-view-by-choices-children" =>  ".view-element-by-choices",
               'data-view-by-choices' =>  json_encode(array(
-                true           =>  "domain-master",
+                true           =>  "domain-virtual",
+                false          =>  "domain-not-virtual",
+              ))
+            ),
+          ))
+        )
+        ->add(Field\ChoiceField::create("isTranslate",
+            array(
+              "choices.status.no"         =>  false,
+              "choices.status.yes"        =>  true,
+            ),  array(
+            "container" =>  array('class'=>"view-element-by-choices domain-not-virtual"),
+            "attr"        =>  array(
+              "data-view-by-choices-parent"   =>  ".form-container",
+              "data-view-by-choices-children" =>  ".view-element-by-choices-language",
+              'data-view-by-choices' =>  json_encode(array(
+                true           =>  "domain-language",
+                false          =>  "domain-not-language",
               ))
             ),
           ))
@@ -160,7 +178,31 @@ class DomainAdmin extends Admin implements AdminModuleInterface
               return $queryBuilder;
             },
             'entitled'  =>  "fields.domainMaster.entitled",
-            "container" =>  array('class'=>"view-element-by-choices domain-master"),
+            "container" =>  array('class'=>"view-element-by-choices domain-virtual"),
+            'choice_label' => 'name',
+            "required"  =>  $formAdminEvent->getFormMapper()->getObject()->getIsVirtual()
+          )
+        ))
+        ->add(Field\EntityField::create("master_language", Domain::class,
+          array(
+            "getter"  =>  function(DomainInterface $object) {
+              return $object->getMaster();
+            },
+            "setter"  =>  function(DomainInterface $object, $value) {
+              if($object->getIsTranslate())
+              {
+                $object->setMaster($value);
+              }
+            },
+            'query_builder'     => function (EntityRepository $er) use($formAdminEvent) {
+              $queryBuilder = $er->createQueryBuilder('root')
+                ->where("root.isVirtual = :isVirtual")
+                ->setParameter("isVirtual", false)
+                ->addOrderBy('root.name', 'ASC');
+              return $queryBuilder;
+            },
+            'entitled'  =>  "fields.domainMaster.entitled",
+            "container" =>  array('class'=>"view-element-by-choices-language domain-language"),
             'choice_label' => 'name',
             "required"  =>  $formAdminEvent->getFormMapper()->getObject()->getIsVirtual()
           )

@@ -128,6 +128,12 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   protected bool $isVirtual = false;
 
   /**
+   * @var boolean
+   * @ORM\Column(name="is_translate", type="boolean", nullable=true, options={"default": false})
+   */
+  protected bool $isTranslate = false;
+
+  /**
    * @var string|null
    * @ORM\Column(name="redirect_url", type="string", length=255, nullable=true )
    */
@@ -226,13 +232,32 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   }
 
   /**
+   * @return bool
+   */
+  public function getIsTranslate(): bool
+  {
+    return $this->isTranslate;
+  }
+
+  /**
+   * @param bool $isTranslate
+   *
+   * @return $this
+   */
+  public function setIsTranslate(bool $isTranslate): Domain
+  {
+    $this->isTranslate = $isTranslate;
+    return $this;
+  }
+
+  /**
    * getDomainsByEnv
    *
    * @return array
    */
   public function getDomainsByEnv(): array
   {
-    if($this->getMaster())
+    if($this->getMaster() && !$this->getIsTranslate())
     {
       return $this->getMaster()->getDomainsByEnv();
     }
@@ -254,7 +279,7 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
    */
   public function getDomainByEnv(string $env): DomainInterface
   {
-    if($this->getMaster())
+    if($this->getMaster() && !$this->getIsTranslate())
     {
       return $this->getMaster()->getDomainByEnv($env);
     }
@@ -589,6 +614,33 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
     return $this;
   }
 
+  /**
+   * getDomainsTranslate
+   *
+   * @return array
+   */
+  public function getDomainsTranslate(): array
+  {
+    $domainsByTranslate = array();
+    /** @var DomainInterface $virtual */
+    foreach($this->getVirtuals() as $virtual)
+    {
+      if($virtual->getIsTranslate() && !$this->getIsVirtual())
+      {
+        $domainsByTranslate[$virtual->getLanguage()] = $virtual;
+      }
+    }
+    return $domainsByTranslate;
+  }
 
-
+  /**
+   * getDomainTranslateByLanguage
+   *
+   * @param ?string $language
+   * @return ?DomainInterface
+   */
+  public function getDomainTranslateByLanguage(?string $language = null): ?DomainInterface
+  {
+    return $language ? AustralTools::getValueByKey($this->getDomainsTranslate(), $language, null) : null;
+  }
 }

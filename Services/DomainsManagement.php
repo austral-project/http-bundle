@@ -65,6 +65,11 @@ Class DomainsManagement
   /**
    * @var array
    */
+  protected array $domainsMaster = array();
+
+  /**
+   * @var array
+   */
   protected array $domainsById = array();
 
   /**
@@ -175,6 +180,10 @@ Class DomainsManagement
           if(!$domain->getIsVirtual())
           {
             $this->domainsWithoutVirtual[$domain->getId()] = $domain;
+            if($domain->getIsMaster())
+            {
+              $this->domainsMaster[$domain->getId()] = $domain;
+            }
           }
           $this->domainsIdByKeyname[$domain->getKeyname()] = $domain->getId();
           $requestContext = new RequestContext();
@@ -227,7 +236,7 @@ Class DomainsManagement
    */
   public function getEnabledDomainWithoutVirtual(): bool
   {
-    return count($this->domainsWithoutVirtual) > 1;
+    return count($this->domainsMaster) > 1;
   }
 
   /**

@@ -1,29 +1,33 @@
 pages:
   names:
     domain:
-      singular:                                 Domain
-      plural:                                   Domains
+      singular:                                                       Domain
+      plural:                                                         Domains
 
 fields:
   domain:
-    entitled:                                   Domain
+    entitled:                                                         Domain
   isMaster:
-    entitled:                                   Is master ?
+    entitled:                                                         Is master ?
   domainMaster:
-    entitled:                                   Master Domain
+    entitled:                                                         Master Domain
   onePage:
-    entitled:                                   Has unique page ?
+    entitled:                                                         Has unique page ?
   scheme:
-    entitled:                                   Scheme
+    entitled:                                                         Scheme
   redirectUrl:
-    entitled:                                   Redirect URL
+    entitled:                                                         Redirect URL
   isVirtual:
-    entitled:                                   Is virtual ?
+    entitled:                                                         Is virtual ?
   favicon:
-    entitled:                                   Favicon
+    entitled:                                                         Favicon
   logo:
-    entitled:                                   Logo
+    entitled:                                                         Logo
   nameDomain:
-    entitled:                                   Name
+    entitled:                                                         Name
   redirectWithUri:
-    entitled:                                   Keep url ?
+    entitled:                                                         Keep url ?
+  domainEnv:
+    entitled:                                                         Env
+  isTranslate:
+    entitled:                                                         Domaine traduit

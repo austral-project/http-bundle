@@ -175,6 +175,18 @@ interface DomainInterface
   /**
    * @return bool
    */
+  public function getIsTranslate(): bool;
+
+  /**
+   * @param bool $isTranslate
+   *
+   * @return $this
+   */
+  public function setIsTranslate(bool $isTranslate): DomainInterface;
+
+  /**
+   * @return bool
+   */
   public function getIsRedirect(): bool;
 
   /**
@@ -254,6 +266,20 @@ interface DomainInterface
    */
   public function setRequestLanguage(string $requestLanguage = null): DomainInterface;
 
+  /**
+   * getDomainsTranslate
+   *
+   * @return array
+   */
+  public function getDomainsTranslate(): array;
+
+  /**
+   * getDomainTranslateByLanguage
+   *
+   * @param ?string $language
+   * @return ?DomainInterface
+   */
+  public function getDomainTranslateByLanguage(?string $language = null): ?DomainInterface;
 
 }
 
