@@ -62,6 +62,14 @@ Class HttpRequest
   }
 
   /**
+   * @return string|null
+   */
+  public function getDomainEnv(): ?string
+  {
+    return $this->httpConfiguration->get('env.current');
+  }
+
+  /**
    * @param string|null $language
    *
    * @return $this
