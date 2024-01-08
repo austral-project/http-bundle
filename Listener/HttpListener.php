@@ -125,8 +125,14 @@ class HttpListener
       $this->eventDispatcher->dispatch($this->httpEvent, $this->httpEvent::EVENT_AUSTRAL_HTTP_REQUEST_INITIALISE);
     }
 
+    if($_locale = $requestAttributes->get("_locale"))
+    {
+      $this->httpRequest->setLanguage($_locale);
+    }
+
     $event->getRequest()->setLocale($this->httpRequest->getLanguage());
     $event->getRequest()->setDefaultLocale($this->httpRequest->getLanguage());
+
     $this->debug->stopWatchStop("init-request");
   }
 
