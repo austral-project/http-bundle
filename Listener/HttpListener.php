@@ -21,7 +21,10 @@ use Austral\ToolsBundle\Services\Debug;
 
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBagInterface;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
@@ -198,17 +201,24 @@ class HttpListener
 
       $this->eventDispatcher->dispatch($this->httpEvent, $this->httpEvent::EVENT_AUSTRAL_HTTP_RESPONSE);
       $response = $responseEvent->getResponse();
-      if($this->httpRequest->getIsCompressionGzipEnabled()) {
-        $encodings = $responseEvent->getRequest()->getEncodings();
-        if(in_array('gzip', $encodings) && function_exists('gzencode')) {
-          $content = gzencode($response->getContent());
-          $response->setContent($content);
-          $response->headers->set('Content-encoding', 'gzip');
-        }
-        elseif(in_array('deflate', $encodings) && function_exists('gzdeflate')) {
-          $content = gzdeflate($response->getContent());
-          $response->setContent($content);
-          $response->headers->set('Content-encoding', 'deflate');
+
+      if(!$response instanceof RedirectResponse
+        && !$response instanceof BinaryFileResponse
+        && !$response instanceof StreamedResponse
+      )
+      {
+        if($this->httpRequest->getIsCompressionGzipEnabled()) {
+          $encodings = $responseEvent->getRequest()->getEncodings();
+          if(in_array('gzip', $encodings) && function_exists('gzencode')) {
+            $content = gzencode($response->getContent());
+            $response->setContent($content);
+            $response->headers->set('Content-encoding', 'gzip');
+          }
+          elseif(in_array('deflate', $encodings) && function_exists('gzdeflate')) {
+            $content = gzdeflate($response->getContent());
+            $response->setContent($content);
+            $response->headers->set('Content-encoding', 'deflate');
+          }
         }
       }
     }
