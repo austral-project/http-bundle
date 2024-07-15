@@ -21,6 +21,7 @@ use Austral\ToolsBundle\Services\Debug;
 
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
@@ -93,6 +94,11 @@ abstract class HttpHandler implements HttpHandlerInterface
   protected ?Debug $debug;
 
   /**
+   * @var FormFactoryInterface
+   */
+  protected FormFactoryInterface $formFactory;
+
+  /**
    * Handler constructor.
    *
    * @param RequestStack $requestStack
@@ -121,6 +127,18 @@ abstract class HttpHandler implements HttpHandlerInterface
   public function setContainer(ContainerInterface $container): HttpHandler
   {
     $this->container = $container;
+    return $this;
+  }
+
+  /**
+   * setFormFactory
+   *
+   * @param FormFactoryInterface $formFactory
+   * @return $this
+   */
+  public function setFormFactory(FormFactoryInterface $formFactory): HttpHandler
+  {
+    $this->formFactory = $formFactory;
     return $this;
   }
 

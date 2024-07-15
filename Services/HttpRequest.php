@@ -109,6 +109,17 @@ Class HttpRequest
   }
 
   /**
+   * @param Request|null $request
+   *
+   * @return $this
+   */
+  public function setTokenStorage(?Request $request): HttpRequest
+  {
+    $this->request = $request;
+    return $this;
+  }
+
+  /**
    * @return bool
    */
   public function getIsCompressionGzipEnabled(): bool

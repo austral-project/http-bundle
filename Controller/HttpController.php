@@ -23,6 +23,7 @@ use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Translation\IdentityTranslator;
@@ -49,6 +50,11 @@ abstract class HttpController implements HttpControllerInterface, ContainerAware
   protected ?Environment $twig = null;
 
   /**
+   * @var TokenStorageInterface|null
+   */
+  protected ?TokenStorageInterface $tokenStorage = null;
+
+  /**
    * HttpController constructor
    *
    * @param Environment|null $twig
@@ -67,6 +73,18 @@ abstract class HttpController implements HttpControllerInterface, ContainerAware
   public function setTwig(?Environment $twig = null): HttpController
   {
     $this->twig = $twig;
+    return $this;
+  }
+
+  /**
+   * setTwig
+   *
+   * @param TokenStorageInterface|null $tokenStorage
+   * @return HttpController
+   */
+  public function setTokenStorage(?TokenStorageInterface $tokenStorage = null): HttpController
+  {
+    $this->tokenStorage = $tokenStorage;
     return $this;
   }
 
@@ -130,7 +148,7 @@ abstract class HttpController implements HttpControllerInterface, ContainerAware
    */
   public function getUser(): ?UserInterface
   {
-    return $this->get("security.token_storage")->getToken() ? $this->get("security.token_storage")->getToken()->getUser() : null;
+    return $this->tokenStorage && $this->tokenStorage->getToken() ? $this->tokenStorage->getToken()->getUser() : null;
   }
 
   /**
