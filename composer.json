@@ -19,7 +19,7 @@
 
     "symfony/config":                         "^5.4 || ^6.4",
     "symfony/event-dispatcher":               "^5.4 || ^6.4",
-    "symfony/http-kernel":                    "^5.4 || ^6.4",
+    "symfony/http-kernel":                    "^5.4 || ^6.4"
   },
   "require-dev": {
   },
