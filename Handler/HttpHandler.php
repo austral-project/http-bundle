@@ -143,6 +143,16 @@ abstract class HttpHandler implements HttpHandlerInterface
   }
 
   /**
+   * getFormFactory
+   *
+   * @return FormFactoryInterface
+   */
+  public function getFormFactory(): FormFactoryInterface
+  {
+    return $this->formFactory;
+  }
+
+  /**
    * Get request
    * @return Request|null
    */
