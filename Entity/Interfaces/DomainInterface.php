@@ -113,16 +113,95 @@ interface DomainInterface
   public function getDomainByEnv(string $env): DomainInterface;
 
   /**
+   * getFavicon
+   *
    * @return string|null
    */
   public function getFavicon(): ?string;
 
   /**
    * @param string|null $favicon
-   *
    * @return $this
    */
   public function setFavicon(?string $favicon): DomainInterface;
+
+  /**
+   * getFaviconSecond
+   *
+   * @return string|null
+   */
+  public function getFaviconSecond(): ?string;
+
+  /**
+   * @param string|null $faviconSecond
+   * @return $this
+   */
+  public function setFaviconSecond(?string $faviconSecond): DomainInterface;
+
+  /**
+   * getLogo
+   *
+   * @return string|null
+   */
+  public function getLogo(): ?string;
+
+  /**
+   * @param string|null $logo
+   * @return $this
+   */
+  public function setLogo(?string $logo): DomainInterface;
+
+  /**
+   * getLogoSecond
+   *
+   * @return string|null
+   */
+  public function getLogoSecond(): ?string;
+
+  /**
+   * @param string|null $logoSecond
+   * @return $this
+   */
+  public function setLogoSecond(?string $logoSecond): DomainInterface;
+
+  /**
+   * getLogoEmail
+   *
+   * @return string|null
+   */
+  public function getLogoEmail(): ?string;
+
+  /**
+   * @param string|null $logoEmail
+   * @return $this
+   */
+  public function setLogoEmail(?string $logoEmail): DomainInterface;
+
+  /**
+   * getPicto
+   *
+   * @return string|null
+   */
+  public function getPicto(): ?string;
+
+  /**
+   * @param string|null $picto
+   * @return $this
+   */
+  public function setPicto(?string $picto): DomainInterface;
+
+  /**
+   * getPictoSecond
+   *
+   * @return string|null
+   */
+  public function getPictoSecond(): ?string;
+
+  /**
+   * @param string|null $pictoSecond
+   * @return $this
+   */
+  public function setPictoSecond(?string $pictoSecond): DomainInterface;
 
   /**
    * @return string
@@ -212,6 +291,57 @@ interface DomainInterface
    * @return DomainInterface
    */
   public function setRedirectWithUri(bool $withUri): DomainInterface;
+
+  /**
+   * getContactEmail
+   *
+   * @return string|null
+   */
+  public function getContactEmail(): ?string;
+
+  /**
+   * @param string|null $contactEmail
+   * @return $this
+   */
+  public function setContactEmail(?string $contactEmail): DomainInterface;
+
+  /**
+   * getContactPhone
+   *
+   * @return string|null
+   */
+  public function getContactPhone(): ?string;
+
+  /**
+   * @param string|null $contactPhone
+   * @return $this
+   */
+  public function setContactPhone(?string $contactPhone): DomainInterface;
+
+  /**
+   * getContactName
+   *
+   * @return string|null
+   */
+  public function getContactName(): ?string;
+  /**
+   * @param string|null $contactName
+   * @return $this
+   */
+  public function setContactName(?string $contactName): DomainInterface;
+
+  /**
+   * getContactAddress
+   *
+   * @return string|null
+   */
+  public function getContactAddress(): ?string;
+
+  /**
+   * @param string|null $contactAddress
+   * @return $this
+   */
+  public function setContactAddress(?string $contactAddress): DomainInterface;
 
   /**
    * @return bool

@@ -90,10 +90,21 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
    * @AustralFile\UploadParameters(configName="page_image")
    * @AustralFile\ImageSize()
    * @AustralFile\Croppers(croppers={
-   *   @AustralFile\Cropper(name="logo", ratio="1/1", picto="austral-picto-globe" )
+   *   @AustralFile\Cropper(name="favicon", ratio="1/1", picto="austral-picto-globe" )
    * })
    */
   protected ?string $favicon = null;
+
+  /**
+   * @var string|null
+   * @ORM\Column(name="favicon_second", type="string", length=255, nullable=true )
+   * @AustralFile\UploadParameters(configName="page_image")
+   * @AustralFile\ImageSize()
+   * @AustralFile\Croppers(croppers={
+   *   @AustralFile\Cropper(name="favicon", ratio="1/1", picto="austral-picto-globe" )
+   * })
+   */
+  protected ?string $faviconSecond = null;
 
   /**
    * @var string|null
@@ -102,6 +113,38 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
    * @AustralFile\ImageSize(widthMin="0", heightMin="0")
    */
   protected ?string $logo = null;
+
+  /**
+   * @var string|null
+   * @ORM\Column(name="logo_second", type="string", length=255, nullable=true)
+   * @AustralFile\UploadParameters(configName="page_image")
+   * @AustralFile\ImageSize(widthMin="0", heightMin="0")
+   */
+  protected ?string $logoSecond = null;
+
+  /**
+   * @var string|null
+   * @ORM\Column(name="logo_email", type="string", length=255, nullable=true)
+   * @AustralFile\UploadParameters(configName="page_image")
+   * @AustralFile\ImageSize(widthMin="0", heightMin="0")
+   */
+  protected ?string $logoEmail = null;
+
+  /**
+   * @var string|null
+   * @ORM\Column(name="picto", type="string", length=255, nullable=true)
+   * @AustralFile\UploadParameters(configName="page_image")
+   * @AustralFile\ImageSize(widthMin="0", heightMin="0")
+   */
+  protected ?string $picto = null;
+
+  /**
+   * @var string|null
+   * @ORM\Column(name="picto_second", type="string", length=255, nullable=true)
+   * @AustralFile\UploadParameters(configName="page_image")
+   * @AustralFile\ImageSize(widthMin="0", heightMin="0")
+   */
+  protected ?string $pictoSecond = null;
 
   /**
    * @var string|null
@@ -144,6 +187,30 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
    * @ORM\Column(name="redirect_with_uri", type="boolean", nullable=false, options={"default": false})
    */
   protected bool $redirectWithUri = false;
+
+  /**
+   * @var string|null
+   * @ORM\Column(name="contact_email", type="string", length=255, nullable=true )
+   */
+  protected ?string $contactEmail = null;
+
+  /**
+   * @var string|null
+   * @ORM\Column(name="contact_phone", type="string", length=255, nullable=true )
+   */
+  protected ?string $contactPhone = null;
+
+  /**
+   * @var string|null
+   * @ORM\Column(name="contact_name", type="string", length=255, nullable=true )
+   */
+  protected ?string $contactName = null;
+
+  /**
+   * @var string|null
+   * @ORM\Column(name="contact_address", type="string", length=255, nullable=true )
+   */
+  protected ?string $contactAddress = null;
 
   /**
    * @var boolean
@@ -366,6 +433,8 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   }
 
   /**
+   * getFavicon
+   *
    * @return string|null
    */
   public function getFavicon(): ?string
@@ -375,7 +444,6 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
 
   /**
    * @param string|null $favicon
-   *
    * @return $this
    */
   public function setFavicon(?string $favicon): Domain
@@ -385,6 +453,28 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   }
 
   /**
+   * getFaviconSecond
+   *
+   * @return string|null
+   */
+  public function getFaviconSecond(): ?string
+  {
+    return $this->faviconSecond;
+  }
+
+  /**
+   * @param string|null $faviconSecond
+   * @return $this
+   */
+  public function setFaviconSecond(?string $faviconSecond): Domain
+  {
+    $this->faviconSecond = $faviconSecond;
+    return $this;
+  }
+
+  /**
+   * getLogo
+   *
    * @return string|null
    */
   public function getLogo(): ?string
@@ -394,12 +484,91 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
 
   /**
    * @param string|null $logo
-   *
-   * @return Domain
+   * @return $this
    */
   public function setLogo(?string $logo): Domain
   {
     $this->logo = $logo;
+    return $this;
+  }
+
+  /**
+   * getLogoSecond
+   *
+   * @return string|null
+   */
+  public function getLogoSecond(): ?string
+  {
+    return $this->logoSecond;
+  }
+
+  /**
+   * @param string|null $logoSecond
+   * @return $this
+   */
+  public function setLogoSecond(?string $logoSecond): Domain
+  {
+    $this->logoSecond = $logoSecond;
+    return $this;
+  }
+
+  /**
+   * getLogoEmail
+   *
+   * @return string|null
+   */
+  public function getLogoEmail(): ?string
+  {
+    return $this->logoEmail;
+  }
+
+  /**
+   * @param string|null $logoEmail
+   * @return $this
+   */
+  public function setLogoEmail(?string $logoEmail): Domain
+  {
+    $this->logoEmail = $logoEmail;
+    return $this;
+  }
+
+  /**
+   * getPicto
+   *
+   * @return string|null
+   */
+  public function getPicto(): ?string
+  {
+    return $this->picto;
+  }
+
+  /**
+   * @param string|null $picto
+   * @return $this
+   */
+  public function setPicto(?string $picto): Domain
+  {
+    $this->picto = $picto;
+    return $this;
+  }
+
+  /**
+   * getPictoSecond
+   *
+   * @return string|null
+   */
+  public function getPictoSecond(): ?string
+  {
+    return $this->pictoSecond;
+  }
+
+  /**
+   * @param string|null $pictoSecond
+   * @return $this
+   */
+  public function setPictoSecond(?string $pictoSecond): Domain
+  {
+    $this->pictoSecond = $pictoSecond;
     return $this;
   }
 
@@ -522,6 +691,86 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   public function setRedirectWithUri(bool $withUri): Domain
   {
     $this->redirectWithUri = $withUri;
+    return $this;
+  }
+
+  /**
+   * getContactEmail
+   *
+   * @return string|null
+   */
+  public function getContactEmail(): ?string
+  {
+    return $this->contactEmail;
+  }
+
+  /**
+   * @param string|null $contactEmail
+   * @return $this
+   */
+  public function setContactEmail(?string $contactEmail): Domain
+  {
+    $this->contactEmail = $contactEmail;
+    return $this;
+  }
+
+  /**
+   * getContactPhone
+   *
+   * @return string|null
+   */
+  public function getContactPhone(): ?string
+  {
+    return $this->contactPhone;
+  }
+
+  /**
+   * @param string|null $contactPhone
+   * @return $this
+   */
+  public function setContactPhone(?string $contactPhone): Domain
+  {
+    $this->contactPhone = $contactPhone;
+    return $this;
+  }
+
+  /**
+   * getContactName
+   *
+   * @return string|null
+   */
+  public function getContactName(): ?string
+  {
+    return $this->contactName;
+  }
+
+  /**
+   * @param string|null $contactName
+   * @return $this
+   */
+  public function setContactName(?string $contactName): Domain
+  {
+    $this->contactName = $contactName;
+    return $this;
+  }
+
+  /**
+   * getContactAddress
+   *
+   * @return string|null
+   */
+  public function getContactAddress(): ?string
+  {
+    return $this->contactAddress;
+  }
+
+  /**
+   * @param string|null $contactAddress
+   * @return $this
+   */
+  public function setContactAddress(?string $contactAddress): Domain
+  {
+    $this->contactAddress = $contactAddress;
     return $this;
   }
 
