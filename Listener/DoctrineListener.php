@@ -12,6 +12,7 @@ namespace Austral\HttpBundle\Listener;
 
 use Austral\EntityBundle\Entity\EntityInterface;
 use Austral\HttpBundle\Services\DomainsManagement;
+use Doctrine\Bundle\DoctrineBundle\Attribute\AsDoctrineListener;
 use Doctrine\Common\EventArgs;
 use Doctrine\Common\EventSubscriber;
 use Doctrine\ORM\Event\LifecycleEventArgs;
@@ -23,6 +24,11 @@ use Doctrine\ORM\EntityManager;
  * @author Matthieu Beurel <matthieu@austral.dev>
  * @final
  */
+#[AsDoctrineListener(event: 'postLoad', connection: 'default')]
+#[AsDoctrineListener(event: 'prePersist', connection: 'default')]
+#[AsDoctrineListener(event: 'preUpdate', connection: 'default')]
+#[AsDoctrineListener(event: 'postRemove', connection: 'default')]
+#[AsDoctrineListener(event: 'postFlush', connection: 'default')]
 class DoctrineListener implements EventSubscriber
 {
 
