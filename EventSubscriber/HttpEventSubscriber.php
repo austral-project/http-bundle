@@ -19,6 +19,7 @@ use Austral\ToolsBundle\Services\Debug;
 use Doctrine\ORM\Query\QueryException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Twig\Environment;
 
 /**
  * Austral Http EventSubscriber.
@@ -47,6 +48,12 @@ abstract class HttpEventSubscriber implements EventSubscriberInterface, HttpEven
    */
   protected Debug $debug;
 
+
+  /**
+   * @var Environment|null
+   */
+  protected ?Environment $twig = null;
+
   /**
    * HttpSubscriber constructor.
    *
@@ -63,6 +70,17 @@ abstract class HttpEventSubscriber implements EventSubscriberInterface, HttpEven
     $this->configuration = $configuration;
     $this->debug = $debug;
     $this->domainsManagement = $domainsManagement->initialize();
+  }
+
+  /**
+   * setTwig
+   *
+   * @param Environment $twig
+   * @return void
+   */
+  public function setTwig(Environment $twig): void
+  {
+    $this->twig = $twig;
   }
 
   /**
