@@ -220,7 +220,11 @@ class DomainAdmin extends Admin implements AdminModuleInterface
           ))
         )
         ->add(Field\UploadField::create("favicon"))
-        ->addPopin("popup-editor-favicon", "favicon", array(
+        ->add(Field\UploadField::create("logo",array(
+          "entitled"  =>  "fields.logo.entitled"
+        )))
+      ->end();
+    $formAdminEvent->getFormMapper()->addPopin("popup-editor-favicon", "favicon", array(
             "button"  =>  array(
               "entitled"            =>  "actions.picture.edit",
               "picto"               =>  "",
@@ -233,9 +237,6 @@ class DomainAdmin extends Admin implements AdminModuleInterface
           )
         )
         ->end()
-        ->add(Field\UploadField::create("logo",array(
-          "entitled"  =>  "fields.logo.entitled"
-        )))
         ->addPopin("popup-editor-logo", "logo", array(
             "button"  =>  array(
               "entitled"            =>  "actions.picture.edit",
@@ -248,8 +249,7 @@ class DomainAdmin extends Admin implements AdminModuleInterface
             )
           )
         )
-        ->end()
-      ->end();
+        ->end();
   }
   /**
    * @param FormAdminEvent $formAdminEvent
