@@ -411,6 +411,20 @@ interface DomainInterface
    */
   public function getDomainTranslateByLanguage(?string $language = null): ?DomainInterface;
 
+  /**
+   * @param string $keyname
+   * @param mixed $default
+   * @return mixed
+   */
+  public function getConfigKey(string $keyname, mixed $default = null): mixed;
+
+  /**
+   * @param string $keyname
+   * @param mixed $value
+   * @return $this
+   */
+  public function setConfigKey(string $keyname, mixed $value = null): self;
+
 }
 
     

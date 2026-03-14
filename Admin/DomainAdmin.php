@@ -50,9 +50,17 @@ class DomainAdmin extends Admin implements AdminModuleInterface
    */
   public function configureListMapper(ListAdminEvent $listAdminEvent)
   {
+    $isGrantedRoot = $listAdminEvent->getAdminHandler()->isGranted("ROLE_ROOT");
+
+
     $listAdminEvent->getListMapper()
-      ->buildDataHydrate(function(DataHydrateORM $dataHydrate) {
-        $dataHydrate->addQueryBuilderPaginatorClosure(function(QueryBuilder $queryBuilder) {
+      ->buildDataHydrate(function(DataHydrateORM $dataHydrate) use($isGrantedRoot){
+        $dataHydrate->addQueryBuilderPaginatorClosure(function(QueryBuilder $queryBuilder) use($isGrantedRoot) {
+          if(!$isGrantedRoot)
+          {
+            $queryBuilder->andWhere("root.isMaster = :isMaster")
+              ->setParameter("isMaster", true);
+          }
           return $queryBuilder
             ->orderBy("root.position", "ASC")
             ->addOrderBy("root.name", "ASC");
@@ -96,6 +104,17 @@ class DomainAdmin extends Admin implements AdminModuleInterface
       $domainEnvs[$env] = $env;
     }
     $formAdminEvent->getFormMapper()
+      ->addFieldset("fieldset.dev.config")
+        ->setCollapse(true)
+        ->setIsView($this->container->get("security.authorization_checker")->isGranted("ROLE_ROOT"))
+        ->add(Field\TextField::create("keyname", array(
+            "autoConstraints" => false,
+            "isView" => $this->container->get("security.authorization_checker")->isGranted("ROLE_ROOT")
+          )
+        ))
+        ->end()
+
+
       ->addFieldset("fieldset.right")
         ->setPositionName(Fieldset::POSITION_RIGHT)
         ->setViewName(false)
@@ -105,52 +124,9 @@ class DomainAdmin extends Admin implements AdminModuleInterface
             "choices.status.yes"        =>  true,
           ))
         )
-        ->add(Field\ChoiceField::create("onePage",
-          array(
-            "choices.status.no"         =>  false,
-            "choices.status.yes"        =>  true,
-          ))
-        )
-        ->add(Field\ChoiceField::create("isMaster",
-          array(
-            "choices.status.no"         =>  false,
-            "choices.status.yes"        =>  true,
-          ))
-        )
-        ->add(Field\ChoiceField::create("isVirtual",
-            array(
-              "choices.status.no"         =>  false,
-              "choices.status.yes"        =>  true,
-            ),  array(
-            "container" =>  array('class'=>"view-element-by-choices-language domain-not-language"),
-            "attr"        =>  array(
-              "data-view-by-choices-parent"   =>  ".form-container",
-              "data-view-by-choices-children" =>  ".view-element-by-choices",
-              'data-view-by-choices' =>  json_encode(array(
-                true           =>  "domain-virtual",
-                false          =>  "domain-not-virtual",
-              ))
-            ),
-          ))
-        )
-        ->add(Field\ChoiceField::create("isTranslate",
-            array(
-              "choices.status.no"         =>  false,
-              "choices.status.yes"        =>  true,
-            ),  array(
-            "container" =>  array('class'=>"view-element-by-choices domain-not-virtual"),
-            "attr"        =>  array(
-              "data-view-by-choices-parent"   =>  ".form-container",
-              "data-view-by-choices-children" =>  ".view-element-by-choices-language",
-              'data-view-by-choices' =>  json_encode(array(
-                true           =>  "domain-language",
-                false          =>  "domain-not-language",
-              ))
-            ),
-          ))
-        )
       ->end()
       ->addFieldset("fieldset.generalInformation")
+        ->add(Field\TextField::create("name", array("entitled"=>"fields.nameDomain.entitled")))
         ->addGroup("domain")
           ->add(Field\SelectField::create('scheme', array(
                 DomainInterface::SCHEME_HTTPS => DomainInterface::SCHEME_HTTPS,
@@ -168,6 +144,56 @@ class DomainAdmin extends Admin implements AdminModuleInterface
             )->setGroupSize(GroupFields::SIZE_COL_2)
           )
         ->end()
+
+        ->addGroup("parameters")
+          ->setDirection(GroupFields::DIRECTION_COLUMN)
+          ->addGroup("parameters")
+            ->setStyle(GroupFields::STYLE_BOOLEAN)
+              ->add(Field\SwitchField::create("isMaster", array(
+                  "helper"    =>  "fields.isMaster.information",
+                )
+              )
+            )
+            ->add(Field\SwitchField::create("onePage", array(
+                  "helper"    =>  "fields.onePage.information",
+                )
+              )
+            )
+            ->add(Field\SwitchField::create("isVirtual",
+                array(
+                  "helper"    =>  "fields.isVirtual.information",
+                  "container" =>  array('class'=>"view-element-by-choices-language domain-not-language"),
+                  "attr"        =>  array(
+                    "data-view-by-choices-parent"   =>  ".form-container",
+                    "data-view-by-choices-children" =>  ".view-element-by-choices",
+                    'data-view-by-choices' =>  json_encode(array(
+                      true           =>  "domain-virtual",
+                      false          =>  "domain-not-virtual",
+                    ))
+                  ),
+                )
+              )
+            )
+            ->add(Field\SwitchField::create("isTranslate",
+                array(
+                  "helper"    =>  "fields.isVirtual.information",
+                  "container" =>  array('class'=>"view-element-by-choices domain-not-virtual"),
+                  "attr"        =>  array(
+                    "data-view-by-choices-parent"   =>  ".form-container",
+                    "data-view-by-choices-children" =>  ".view-element-by-choices-language",
+                    'data-view-by-choices' =>  json_encode(array(
+                      true           =>  "domain-language",
+                      false          =>  "domain-not-language",
+                    ))
+                  ),
+                )
+              )
+            )
+          ->end()
+        ->end()
+
+
+
         ->add(Field\EntityField::create("master", Domain::class,
           array(
             'query_builder'     => function (EntityRepository $er) use($formAdminEvent) {
@@ -207,49 +233,105 @@ class DomainAdmin extends Admin implements AdminModuleInterface
             "required"  =>  $formAdminEvent->getFormMapper()->getObject()->getIsVirtual()
           )
         ))
-
-
-        ->add(Field\TextField::create("keyname"))
-        ->add(Field\TextField::create("name", array("entitled"=>"fields.nameDomain.entitled")))
         ->add(Field\TextField::create("language"))
-        ->add(Field\TextField::create("redirectUrl"))
-        ->add(Field\ChoiceField::create("redirectWithUri",
-          array(
-            "choices.status.no"         =>  false,
-            "choices.status.yes"        =>  true,
-          ))
-        )
-        ->add(Field\UploadField::create("favicon"))
-        ->add(Field\UploadField::create("logo",array(
-          "entitled"  =>  "fields.logo.entitled"
-        )))
       ->end();
-    $formAdminEvent->getFormMapper()->addPopin("popup-editor-favicon", "favicon", array(
-            "button"  =>  array(
-              "entitled"            =>  "actions.picture.edit",
-              "picto"               =>  "",
-              "class"               =>  "button-action"
-            ),
-            "popin"  =>  array(
-              "id"            =>  "upload",
-              "template"      =>  "uploadEditor",
-            )
-          )
-        )
-        ->end()
-        ->addPopin("popup-editor-logo", "logo", array(
-            "button"  =>  array(
-              "entitled"            =>  "actions.picture.edit",
-              "picto"               =>  "",
-              "class"               =>  "button-action"
-            ),
-            "popin"  =>  array(
-              "id"            =>  "upload",
-              "template"      =>  "uploadEditor",
-            )
-          )
-        )
+
+    $formAdminEvent->getFormMapper()
+      ->addFieldset("fieldset.domainLogo")
+        ->addGroup("logo")
+          ->setDirection(GroupFields::DIRECTION_COLUMN)
+          ->addGroup("logo_master")
+            ->add(Field\UploadField::create("logo",array(
+              "entitled"  =>  "fields.logo.entitled"
+            )))
+            ->add(Field\UploadField::create("logoSecond",array(
+              "entitled"  =>  "fields.logoSecond.entitled"
+            )))
+          ->end()
+          ->addGroup("logo_second")
+            ->add(Field\UploadField::create("favicon",array(
+              "entitled"  =>  "fields.favicon.entitled"
+            )))
+            ->add(Field\UploadField::create("logoEmail",array(
+              "entitled"  =>  "fields.logoEmail.entitled"
+            )))
+          ->end()
         ->end();
+
+    $formAdminEvent->getFormMapper()
+      ->addFieldset("fieldset.domainConfig")
+        ->addGroup("robots", "groups.robots")
+        ->setDirection(GroupFields::DIRECTION_COLUMN)
+          ->addGroup("robots")
+            ->setStyle(GroupFields::STYLE_BOOLEAN)
+            ->add(Field\SwitchField::create("isIndex", array(
+                  "entitled"  =>  "fields.isIndex.entitled",
+                  "helper"    =>  "fields.isIndexDomain.information",
+                  "getter"  =>  function(DomainInterface $object) {
+                    return $object->getConfigKey("isIndex", false);
+                  },
+                  "setter"  =>  function(DomainInterface $object, $value) {
+                    return $object->setConfigKey("isIndex", $value);
+                  },
+                )
+              )
+            )
+            ->add(Field\SwitchField::create("isFollow", array(
+                  "entitled"  =>  "fields.isFollow.entitled",
+                  "helper"    =>  "fields.isFollowDomain.information",
+                  "getter"  =>  function(DomainInterface $object) {
+                    return $object->getConfigKey("isFollow", false);
+                  },
+                  "setter"  =>  function(DomainInterface $object, $value) {
+                    return $object->setConfigKey("isFollow", $value);
+                  },
+                )
+              )
+            )
+          ->end()
+        ->end()
+        ->addGroup("redirect", "groups.redirect")
+          ->add(Field\TextField::create("redirectUrl"))
+          ->add(Field\ChoiceField::create("redirectWithUri",
+            array(
+              "choices.status.no"         =>  false,
+              "choices.status.yes"        =>  true,
+            ))->setGroupSize(GroupFields::SIZE_COL_5)
+          )
+        ->end()
+    ;
+
+
+
+
+
+    $formAdminEvent->getFormMapper()
+      ->addPopin("popup-editor-favicon", "favicon", array(
+          "button"  =>  array(
+            "entitled"            =>  "actions.picture.edit",
+            "picto"               =>  "",
+            "class"               =>  "button-action"
+          ),
+          "popin"  =>  array(
+            "id"            =>  "upload",
+            "template"      =>  "uploadEditor",
+          )
+        )
+      )
+      ->end()
+      ->addPopin("popup-editor-logo", "logo", array(
+          "button"  =>  array(
+            "entitled"            =>  "actions.picture.edit",
+            "picto"               =>  "",
+            "class"               =>  "button-action"
+          ),
+          "popin"  =>  array(
+            "id"            =>  "upload",
+            "template"      =>  "uploadEditor",
+          )
+        )
+      )
+      ->end();
   }
   /**
    * @param FormAdminEvent $formAdminEvent

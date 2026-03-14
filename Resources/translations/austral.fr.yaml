@@ -4,21 +4,33 @@ pages:
       singular:                                                       Domaine
       plural:                                                         Domaines
 
+
+
+fieldset:
+  domainLogo:                                                         Logos pour le domaine
+  domainConfig:                                                       Configuration du domaine
+
+groups:
+  redirect:                                                           Redirections
+
 fields:
   domain:
     entitled:                                                         Domaine
   isMaster:
     entitled:                                                         Est le domaine principal ?
+    information:                                                      Possède l'ensemble des pages du site.
   domainMaster:
     entitled:                                                         Domaine principal
   onePage:
     entitled:                                                         N'a qu'une seule page ?
+    information:                                                      Ne possède qu'une seule page.
   scheme:
     entitled:                                                         Scheme
   redirectUrl:
-    entitled:                                                         Url de redirection
+    entitled:                                                         Url de redirection du domaine
   isVirtual:
     entitled:                                                         Est virtuel ?
+    information:                                                      Si défini, le domaine principal devra être choisi.
   favicon:
     entitled:                                                         Favicon
   logo:
@@ -26,8 +38,16 @@ fields:
   nameDomain:
     entitled:                                                         Nom
   redirectWithUri:
-    entitled:                                                         Conserver l'url ?
+    entitled:                                                         Conserver l'url pour la redirection ?
   domainEnv:
     entitled:                                                         Env
   isTranslate:
     entitled:                                                         Domaine traduit
+  logoSecond:
+    entitled:                                                         Logo secondaire
+  logoEmail:
+    entitled:                                                         Logo email
+  isIndexDomain:
+    information:                                                      Activer l'indexation afin d'accepter les moteurs de recherche à naviguer sur le domaine ?
+  isFollowDomain:
+    information:                                                      Activer le suivi des moteurs de recherche pour le domaine?

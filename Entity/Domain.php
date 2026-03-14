@@ -225,6 +225,18 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   protected ?string $language = null;
 
   /**
+   * @var string|null
+   * @ORM\Column(name="email_from", type="string", length=255, nullable=true )
+   */
+  protected ?string $emailFrom = null;
+
+  /**
+   * @var array
+   * @ORM\Column(name="config_keys", type="json", nullable=true, options={"default": "{}"})
+   */
+  protected array $configKeys = array();
+
+  /**
    * @var int
    * @Gedmo\SortablePosition
    * @ORM\Column(name="position", type="integer", nullable=false, options={"default": 1} )
@@ -864,6 +876,28 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   }
 
   /**
+   * getEmailFrom
+   *
+   * @return string|null
+   */
+  public function getEmailFrom(): ?string
+  {
+    return $this->emailFrom;
+  }
+
+  /**
+   * setEmailFrom
+   *
+   * @param string|null $emailFrom
+   * @return $this
+   */
+  public function setEmailFrom(?string $emailFrom): self
+  {
+    $this->emailFrom = $emailFrom;
+    return $this;
+  }
+
+  /**
    * getDomainsTranslate
    *
    * @return array
@@ -891,5 +925,49 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   public function getDomainTranslateByLanguage(?string $language = null): ?DomainInterface
   {
     return $language ? AustralTools::getValueByKey($this->getDomainsTranslate(), $language, null) : null;
+  }
+
+  /**
+   * @return array
+   */
+  public function getConfigKeys(): array
+  {
+    return $this->configKeys;
+  }
+
+  /**
+   * @param array $configKeys
+   *
+   * @return $this
+   */
+  public function setConfigKeys(array $configKeys): self
+  {
+    $this->configKeys = $configKeys;
+    return $this;
+  }
+
+  /**
+   * getColorByKeyname
+   *
+   * @param string $keyname
+   * @param mixed $default
+   * @return mixed
+   */
+  public function getConfigKey(string $keyname, mixed $default = null): mixed
+  {
+    return array_key_exists($keyname, $this->configKeys) ? $this->configKeys[$keyname] : $default;
+  }
+
+  /**
+   * setColorByKeyname
+   *
+   * @param string $keyname
+   * @param mixed $value
+   * @return $this
+   */
+  public function setConfigKey(string $keyname, mixed $value = null): self
+  {
+    $this->configKeys[$keyname] = $value;
+    return $this;
   }
 }
