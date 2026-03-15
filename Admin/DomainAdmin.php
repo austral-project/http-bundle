@@ -289,6 +289,28 @@ class DomainAdmin extends Admin implements AdminModuleInterface
               )
             )
           ->end()
+          ->addGroup("seo")
+            ->add(Field\TextField::create("seoTitleSuffixHomepage", array(
+              "entitled"  =>  "fields.seoTitleSuffixHomepage.entitled",
+              "helper"    =>  "fields.seoTitleSuffixHomepage.information",
+              "getter"  =>  function(DomainInterface $object) {
+                return $object->getConfigKey("seoTitleSuffixHomepage", null);
+              },
+              "setter"  =>  function(DomainInterface $object, $value) {
+                return $object->setConfigKey("seoTitleSuffixHomepage", $value);
+              },
+            )))
+            ->add(Field\TextField::create("seoTitleSuffix", array(
+              "entitled"  =>  "fields.seoTitleSuffix.entitled",
+              "helper"    =>  "fields.seoTitleSuffix.information",
+              "getter"  =>  function(DomainInterface $object) {
+                return $object->getConfigKey("seoTitleSuffix", null);
+              },
+              "setter"  =>  function(DomainInterface $object, $value) {
+                return $object->setConfigKey("seoTitleSuffix", $value);
+              },
+            )))
+          ->end()
         ->end()
         ->addGroup("redirect", "groups.redirect")
           ->add(Field\TextField::create("redirectUrl"))

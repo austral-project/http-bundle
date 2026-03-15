@@ -51,3 +51,9 @@ fields:
     information:                                                      Activer l'indexation afin d'accepter les moteurs de recherche à naviguer sur le domaine ?
   isFollowDomain:
     information:                                                      Activer le suivi des moteurs de recherche pour le domaine?
+  seoTitleSuffixHomepage:
+    entitled:                                                         Suffix du titre de la page pour la homepage
+    information:                                                      "exemple : - Mon site"
+  seoTitleSuffix:
+    entitled:                                                         Suffix du titre de la page pour l'ensemble des pages
+    information:                                                      "exemple : - Mon site"
