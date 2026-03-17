@@ -55,6 +55,15 @@ class DomainAdmin extends Admin implements AdminModuleInterface
 
     $listAdminEvent->getListMapper()
       ->buildDataHydrate(function(DataHydrateORM $dataHydrate) use($isGrantedRoot){
+
+        $dataHydrate->addQueryBuilderCountAllClosure(function(QueryBuilder $queryBuilder) use($isGrantedRoot) {
+          if(!$isGrantedRoot)
+          {
+            $queryBuilder->andWhere("root.isMaster = :isMaster")
+              ->setParameter("isMaster", true);
+          }
+        });
+
         $dataHydrate->addQueryBuilderPaginatorClosure(function(QueryBuilder $queryBuilder) use($isGrantedRoot) {
           if(!$isGrantedRoot)
           {
