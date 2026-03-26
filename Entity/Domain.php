@@ -955,7 +955,7 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
    */
   public function getConfigKey(string $keyname, mixed $default = null): mixed
   {
-    return array_key_exists($keyname, $this->configKeys) ? $this->configKeys[$keyname] : $default;
+    return array_key_exists($keyname, $this->getConfigKeys()) ? $this->configKeys[$keyname] : $default;
   }
 
   /**
