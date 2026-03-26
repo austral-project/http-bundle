@@ -932,7 +932,7 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
    */
   public function getConfigKeys(): array
   {
-    return $this->configKeys;
+    return $this->configKeys ?? array();
   }
 
   /**
