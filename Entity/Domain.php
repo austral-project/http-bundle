@@ -231,10 +231,10 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   protected ?string $emailFrom = null;
 
   /**
-   * @var array
+   * @var array|null
    * @ORM\Column(name="config_keys", type="json", nullable=true, options={"default": "{}"})
    */
-  protected array $configKeys = array();
+  protected ?array $configKeys = array();
 
   /**
    * @var int
