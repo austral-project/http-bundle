@@ -277,7 +277,7 @@ class DomainAdmin extends Admin implements AdminModuleInterface
                   "entitled"  =>  "fields.isIndex.entitled",
                   "helper"    =>  "fields.isIndexDomain.information",
                   "getter"  =>  function(DomainInterface $object) {
-                    return $object->getConfigKey("isIndex", false);
+                    return (bool) $object->getConfigKey("isIndex", false);
                   },
                   "setter"  =>  function(DomainInterface $object, $value) {
                     return $object->setConfigKey("isIndex", $value);
@@ -289,7 +289,7 @@ class DomainAdmin extends Admin implements AdminModuleInterface
                   "entitled"  =>  "fields.isFollow.entitled",
                   "helper"    =>  "fields.isFollowDomain.information",
                   "getter"  =>  function(DomainInterface $object) {
-                    return $object->getConfigKey("isFollow", false);
+                    return  (bool) $object->getConfigKey("isFollow", false);
                   },
                   "setter"  =>  function(DomainInterface $object, $value) {
                     return $object->setConfigKey("isFollow", $value);
