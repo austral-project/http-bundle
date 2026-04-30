@@ -129,9 +129,25 @@ class DomainAdmin extends Admin implements AdminModuleInterface
         ->setViewName(false)
         ->add(Field\ChoiceField::create("isEnabled",
           array(
-            "choices.status.no"         =>  false,
-            "choices.status.yes"        =>  true,
-          ))
+            "choices.status.no"     =>  array(
+              "value"   =>  false,
+              "styles"  =>  array(
+                "--element-choice-current-background:var(color-main-20)",
+                "--element-choice-current-color:var(--color-main-100)",
+                "--element-choice-hover-color:var(--color-main-100)"
+              )
+            ),
+            "choices.status.yes"     =>  array(
+              "value"   =>  true,
+              "styles"  =>  array(
+                "--element-choice-current-background:var(--color-green-20)",
+                "--element-choice-current-color:var(--color-green-100)",
+                "--element-choice-hover-color:var(--color-green-100)"
+              )
+            )
+          )
+
+        )
         )
       ->end()
       ->addFieldset("fieldset.generalInformation")
