@@ -62,7 +62,8 @@ class EntityManagerListener
     /** @var DomainFilterMapping $domainFilterMapping */
     if(array_key_exists("domainId", $routeParams) && ($domainFilterMapping = $this->mapping->getEntityClassMapping($entityManagerEvent->getSourceObject()->getClassnameForMapping(), DomainFilterMapping::class)))
     {
-      if($domainFilterMapping->getAutoDomainId())
+      $domainByRouteParameter = $this->domainsManagement->getDomainById($routeParams["domainId"]);
+      if($domainFilterMapping->getAutoDomainId() && $domainByRouteParameter->getIsMaster())
       {
         $entityManagerEvent->getObject()->setDomainId($routeParams["domainId"]);
       }
