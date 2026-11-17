@@ -15,93 +15,64 @@ use Austral\HttpBundle\Template\Interfaces\HttpTemplateParametersInterface;
 
 use Austral\EntityBundle\EntityManager\EntityManagerInterface;
 use Austral\SecurityBundle\Entity\Interfaces\UserInterface;
-use Austral\ToolsBundle\Services\Debug;
 
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Symfony\Component\Translation\IdentityTranslator;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Austral Http Handler Interface.
+ * @template T of object
+ *
  * @author Matthieu Beurel <matthieu@austral.dev>
  */
 interface HttpHandlerInterface
 {
 
   /**
-   * AdminHandlerInterface constructor.
-   *
    * @param RequestStack $request
-   * @param EventDispatcherInterface $dispatcher
-   * @param TokenStorageInterface $tokenStorage
-   * @param Debug|null $debug
-   */
-  public function __construct(RequestStack $request,
-    EventDispatcherInterface $dispatcher,
-    TokenStorageInterface $tokenStorage,
-    ?Debug $debug
-  );
-
-  /**
-   * setContainer
-   *
-   * @param ContainerInterface $container
    * @return $this
    */
-  public function setContainer(ContainerInterface $container): HttpHandlerInterface;
+  public function setRequestStack(RequestStack $request): self;
 
   /**
-   * Get request
-   * @return Request|null
-   */
-  public function getRequest(): ?Request;
-  /**
-   * @param Request|null $request
-   *
+   * @param FormFactoryInterface $formFactory
    * @return $this
    */
-  public function setRequest(?Request $request): HttpHandlerInterface;
+  public function setFormFactory(FormFactoryInterface $formFactory): self;
 
   /**
-   * @return DomainsManagement
+   * @return FormFactoryInterface|null
    */
-  public function getDomainsManagement(): DomainsManagement;
+  public function getFormFactory(): ?FormFactoryInterface;
 
   /**
-   * @param DomainsManagement $domainsManagement
-   *
-   * @return HttpHandlerInterface
+   * @return DomainsManagement<T>|null
    */
-  public function setDomainsManagement(DomainsManagement $domainsManagement): HttpHandlerInterface;
+  public function getDomainsManagement(): ?DomainsManagement;
 
   /**
-   * Get dispatcher
+   * @param DomainsManagement<T> $domainsManagement
+   * @return $this
+   */
+  public function setDomainsManagement(DomainsManagement $domainsManagement): self;
+
+  /**
    * @return EventDispatcherInterface
    */
   public function getDispatcher(): EventDispatcherInterface;
 
   /**
-   * @param EventDispatcherInterface $dispatcher
-   *
-   * @return $this
+   * @param mixed ...$args
+   * @return void
    */
-  public function setDispatcher(EventDispatcherInterface $dispatcher): HttpHandlerInterface;
-
-  /**
-   * executeHandlerMethod
-   */
-  public function executeHandlerMethod();
-
-  /**
-   * @return EntityManagerInterface|null
-   */
-  public function getEntityManager(): ?EntityManagerInterface;
+  public function executeHandlerMethod(mixed ...$args): void;
 
   /**
    * @return string|null
@@ -109,62 +80,61 @@ interface HttpHandlerInterface
   public function getUserTabId(): ?string;
 
   /**
-   * @param string|null $userTabId
-   *
+   * @param string $userTabId
    * @return $this
    */
-  public function setUserTabId(?string $userTabId): HttpHandlerInterface;
+  public function setUserTabId(string $userTabId): self;
 
   /**
-   * @param $role
-   *
+   * @param mixed $role
    * @return bool
    */
-  public function isGranted($role): bool;
+  public function isGranted(mixed $role): bool;
 
   /**
-   * @return UserInterface|string|null
+   * @return UserInterface<T>|null
    */
-  public function getUser();
+  public function getUser(): ?UserInterface;
 
   /**
-   * @return HttpTemplateParametersInterface
+   * @return HttpTemplateParametersInterface<T>|null
    */
-  public function getTemplateParameters() : HttpTemplateParametersInterface;
+  public function getTemplateParameters() : ?HttpTemplateParametersInterface;
 
   /**
-   * @param HttpTemplateParametersInterface $templateParameters
-   *
+   * @param HttpTemplateParametersInterface<T> $templateParameters
    * @return $this
    */
-  public function setTemplateParameters(HttpTemplateParametersInterface $templateParameters): HttpHandlerInterface;
+  public function setTemplateParameters(HttpTemplateParametersInterface $templateParameters): self;
 
   /**
-   * Returns a NotFoundHttpException.
-   *
-   * This will result in a 404 response code. Usage example:
-   *
-   *     throw $this->createNotFoundException('Page not found!');
+   * @param string $message
+   * @param \Throwable|null $previous
+   * @return NotFoundHttpException
    */
-  public function createNotFoundException(string $message = 'Not Found', \Throwable $previous = null): NotFoundHttpException;
+  public function createNotFoundException(string $message = 'Not Found', ?\Throwable $previous = null): NotFoundHttpException;
 
   /**
-   * Generates a URL from the given parameters.
-   *
-   * @param string $route         The name of the route
-   * @param mixed          $parameters    An array of parameters
-   * @param bool|string    $referenceType The type of reference (one of the constants in UrlGeneratorInterface)
-   *
-   * @return string The generated URL
-   * @see UrlGeneratorInterface
+   * @param string $message
    */
-  public function generateUrl(string $route, $parameters = array(), $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH, $env = null): string;
+  public function pageNotFound(string $message = "The page not found !!!!"): void;
+
   /**
-   * Adds a flash message to the current session for type.
-   *
+   * @param string $route
+   * @param array<string, int|string> $parameters
+   * @param int $referenceType
+   * @param string|null $env
+   * @return string
+   */
+  public function generateUrl(string $route, array $parameters = array(), int $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH, ?string $env = null): string;
+
+  /**
+   * @param string $type
+   * @param string $message
+   * @return void
    * @throws \LogicException
    */
-  public function addFlash(string $type, $message): void;
+  public function addFlash(string $type, string $message): void;
 
   /**
    * @return SessionInterface|null
@@ -172,14 +142,31 @@ interface HttpHandlerInterface
   public function getSession(): ?SessionInterface;
 
   /**
-   * @return object|IdentityTranslator|null
+   * @return TranslatorInterface
    */
-  public function getTranslate();
+  public function getTranslate(): TranslatorInterface;
 
   /**
    * @return string|null
    */
   public function getRedirectUrl(): ?string;
+
+  /**
+   * @param string $redirectUrl
+   * @return $this
+   */
+  public function setRedirectUrl(string $redirectUrl): self;
+
+  /**
+   * @return int
+   */
+  public function getRedirectStatus(): int;
+
+  /**
+   * @param int $redirectStatus
+   * @return $this
+   */
+  public function setRedirectStatus(int $redirectStatus): self;
 
   /**
    * @return bool

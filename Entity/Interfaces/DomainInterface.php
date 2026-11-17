@@ -10,65 +10,71 @@
 
 namespace Austral\HttpBundle\Entity\Interfaces;
 
+use Austral\Contracts\Entity\EntityInterface;
 use Doctrine\Common\Collections\Collection;
 
 /**
  * Austral Domain Interface.
+ * @template T of object
+ *
+ * @extends EntityInterface<T>
+ *
  * @author Matthieu Beurel <matthieu@austral.dev>
+ * @interface
  */
-interface DomainInterface
+interface DomainInterface extends EntityInterface
 {
 
-  const SCHEME_HTTPS = "https";
-  const SCHEME_HTTP = "http";
+  const string SCHEME_HTTPS = "https";
+  const string SCHEME_HTTP = "http";
 
   /**
-   * @return DomainInterface|null
+   * @return DomainInterface<T>|null
    */
   public function getMaster(): ?DomainInterface;
 
   /**
-   * @param DomainInterface $master
+   * @param DomainInterface<T> $master
    *
-   * @return DomainInterface
+   * @return $this
    */
-  public function setMaster(DomainInterface $master): DomainInterface;
+  public function setMaster(DomainInterface $master): self;
 
   /**
-   * @return Collection
+   * @return Collection<int, DomainInterface<T>>
    */
   public function getVirtuals(): Collection;
 
   /**
-   * @param Collection $virtuals
+   * @param Collection<int, DomainInterface<T>> $virtuals
    *
-   * @return DomainInterface
+   * @return $this
    */
-  public function setVirtuals(Collection $virtuals): DomainInterface;
+  public function setVirtuals(Collection $virtuals): self;
 
   /**
-   * @return string|null
+   * @return string
    */
-  public function getDomain(): ?string;
+  public function getDomain(): string;
 
   /**
-   * @param string|null $domain
+   * @param string $domain
    *
-   * @return DomainInterface
+   * @return $this
    */
-  public function setDomain(?string $domain): DomainInterface;
+  public function setDomain(string $domain = ""): self;
 
   /**
-   * @return string|null
+   * @return string
    */
-  public function getName(): ?string;
+  public function getName(): string;
 
   /**
-   * @param string|null $name
+   * @param string $name
    *
-   * @return DomainInterface
+   * @return $this
    */
-  public function setName(?string $name): DomainInterface;
+  public function setName(string $name = ""): self;
 
   /**
    * @return string|null
@@ -76,39 +82,31 @@ interface DomainInterface
   public function getKeyname(): ?string;
 
   /**
-   * @param string|null $keyname
+   * @param string $keyname
    *
-   * @return DomainInterface
+   * @return $this
    */
-  public function setKeyname(?string $keyname): DomainInterface;
+  public function setKeyname(string $keyname): self;
 
   /**
-   * getDomainEnv
-   *
    * @return string
    */
   public function getDomainEnv(): string;
 
   /**
-   * setDomainEnv
-   *
    * @param string $domainEnv
-   * @return DomainInterface
+   * @return $this
    */
-  public function setDomainEnv(string $domainEnv): DomainInterface;
+  public function setDomainEnv(string $domainEnv): self;
 
   /**
-   * getDomainsByEnv
-   *
-   * @return array
+   * @return array<string, DomainInterface<T>>
    */
   public function getDomainsByEnv(): array;
 
   /**
-   * getDomainByEnv
-   *
    * @param string $env
-   * @return DomainInterface
+   * @return DomainInterface<T>
    */
   public function getDomainByEnv(string $env): DomainInterface;
 
@@ -123,7 +121,7 @@ interface DomainInterface
    * @param string|null $favicon
    * @return $this
    */
-  public function setFavicon(?string $favicon): DomainInterface;
+  public function setFavicon(?string $favicon): self;
 
   /**
    * getFaviconSecond
@@ -211,9 +209,9 @@ interface DomainInterface
   /**
    * @param string $scheme
    *
-   * @return DomainInterface
+   * @return $this
    */
-  public function setScheme(string $scheme): DomainInterface;
+  public function setScheme(string $scheme): self;
 
   /**
    * @return bool
@@ -223,9 +221,9 @@ interface DomainInterface
   /**
    * @param bool $isMaster
    *
-   * @return DomainInterface
+   * @return $this
    */
-  public function setIsMaster(bool $isMaster): DomainInterface;
+  public function setIsMaster(bool $isMaster): self;
 
   /**
    * @return bool
@@ -235,9 +233,9 @@ interface DomainInterface
   /**
    * @param bool $isEnabled
    *
-   * @return DomainInterface
+   * @return $this
    */
-  public function setIsEnabled(bool $isEnabled): DomainInterface;
+  public function setIsEnabled(bool $isEnabled): self;
 
   /**
    * @return bool
@@ -249,7 +247,7 @@ interface DomainInterface
    *
    * @return $this
    */
-  public function setIsVirtual(bool $isVirtual): DomainInterface;
+  public function setIsVirtual(bool $isVirtual): self;
 
   /**
    * @return bool
@@ -261,7 +259,7 @@ interface DomainInterface
    *
    * @return $this
    */
-  public function setIsTranslate(bool $isTranslate): DomainInterface;
+  public function setIsTranslate(bool $isTranslate): self;
 
   /**
    * @return bool
@@ -276,9 +274,9 @@ interface DomainInterface
   /**
    * @param string|null $redirectUrl
    *
-   * @return DomainInterface
+   * @return $this
    */
-  public function setRedirectUrl(?string $redirectUrl): DomainInterface;
+  public function setRedirectUrl(?string $redirectUrl): self;
 
   /**
    * @return bool
@@ -288,9 +286,9 @@ interface DomainInterface
   /**
    * @param bool $withUri
    *
-   * @return DomainInterface
+   * @return $this
    */
-  public function setRedirectWithUri(bool $withUri): DomainInterface;
+  public function setRedirectWithUri(bool $withUri): self;
 
   /**
    * getContactEmail
@@ -353,7 +351,7 @@ interface DomainInterface
    *
    * @return $this
    */
-  public function setOnePage(bool $onePage): DomainInterface;
+  public function setOnePage(bool $onePage): self;
 
   /**
    * @return string|null
@@ -363,21 +361,21 @@ interface DomainInterface
   /**
    * @param string|null $language
    *
-   * @return DomainInterface
+   * @return $this
    */
-  public function setLanguage(?string $language): DomainInterface;
+  public function setLanguage(?string $language): self;
 
   /**
-   * @return int|null
+   * @return int<1, max>
    */
-  public function getPosition(): ?int;
+  public function getPosition(): int;
 
   /**
-   * @param int|null $position
+   * @param int<1, max> $position
    *
-   * @return DomainInterface
+   * @return $this
    */
-  public function setPosition(?int $position): DomainInterface;
+  public function setPosition(int $position): self;
 
   /**
    * @return string|null
@@ -394,20 +392,16 @@ interface DomainInterface
    *
    * @return $this
    */
-  public function setRequestLanguage(string $requestLanguage = null): DomainInterface;
+  public function setRequestLanguage(?string $requestLanguage = null): self;
 
   /**
-   * getDomainsTranslate
-   *
-   * @return array
+   * @return array<string, DomainInterface<T>>
    */
   public function getDomainsTranslate(): array;
 
   /**
-   * getDomainTranslateByLanguage
-   *
-   * @param ?string $language
-   * @return ?DomainInterface
+   * @param string|null $language
+   * @return DomainInterface<T>|null
    */
   public function getDomainTranslateByLanguage(?string $language = null): ?DomainInterface;
 

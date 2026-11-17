@@ -15,6 +15,8 @@ use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Austral Request.
+ * @template T of object
+ *
  * @author Matthieu Beurel <matthieu@austral.dev>
  */
 Class HttpRequest
@@ -31,7 +33,7 @@ Class HttpRequest
   protected ?string $language = null;
 
   /**
-   * @var array
+   * @var array<string, string>
    */
   protected array $multiLanguages = array();
 
@@ -54,9 +56,9 @@ Class HttpRequest
   }
 
   /**
-   * @return string|null
+   * @return string
    */
-  public function getLanguage(): ?string
+  public function getLanguage(): string
   {
     return $this->language ?: $this->httpConfiguration->get('default_language');
   }
@@ -82,7 +84,7 @@ Class HttpRequest
 
   /**
    * getMultiLanguages
-   * @return array
+   * @return array<string, string>
    */
   public function getMultiLanguages(): array
   {

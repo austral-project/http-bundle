@@ -7,17 +7,20 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Austral\HttpBundle\Annotation;
+namespace Austral\HttpBundle\Attribute;
 
-use Austral\EntityBundle\Annotation\AustralEntityAnnotation;
-use Doctrine\Common\Annotations\Annotation\NamedArgumentConstructor;
+use Austral\EntityBundle\Attribute\AustralEntityAttribute;
 
 /**
- * @Annotation
- * @NamedArgumentConstructor()
- * @Target({"CLASS"})
+ * Class Translate
+ * @Attribute
+ * @package Austral\HttpBundle\Attribute
+ * @Target("CLASS")
+ * @author  Matthieu Beurel <matthieu@austral.dev>
+ * @final
  */
-final class DomainFilter extends AustralEntityAnnotation
+#[\Attribute(\Attribute::TARGET_CLASS)]
+final class DomainFilter extends AustralEntityAttribute
 {
 
   /**
@@ -40,7 +43,7 @@ final class DomainFilter extends AustralEntityAnnotation
    * @param bool $forAllDomainEnabled
    * @param bool $autoAttachement
    */
-  public function __construct(bool $autoDomainId = false, bool $forAllDomainEnabled = false, $autoAttachement = true)
+  public function __construct(bool $autoDomainId = false, bool $forAllDomainEnabled = false, bool $autoAttachement = true)
   {
     $this->autoDomainId = $autoDomainId;
     $this->forAllDomainEnabled = $forAllDomainEnabled;

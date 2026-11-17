@@ -13,24 +13,37 @@ namespace Austral\HttpBundle\Template\Interfaces;
 
 /**
  * Austral Http Template Interface.
+ * @template T of object
+ *
  * @author Matthieu Beurel <matthieu@austral.dev>
  */
 interface HttpTemplateParametersInterface
 {
 
   /**
-   * @return array
+   * @return array<string, mixed>
    */
   public function __serialize();
 
   /**
+   * @return string|null
+   */
+  public function getName(): ?string;
+
+  /**
+   * @param string|null $name
+   * @return $this
+   */
+  public function setName(?string $name = null): self;
+
+  /**
    * @param string $key
-   * @param $value
+   * @param mixed $value
    * @param bool $merge
    *
    * @return $this
    */
-  public function addParameters(string $key, $value, bool $merge = false): HttpTemplateParametersInterface;
+  public function addParameters(string $key, mixed $value, bool $merge = false): self;
 
   /**
    * @param string $key
@@ -48,7 +61,7 @@ interface HttpTemplateParametersInterface
 
   /**
    * Get parameters
-   * @return array
+   * @return array<string, mixed>
    */
   public function getParameters(): array;
 
@@ -56,18 +69,18 @@ interface HttpTemplateParametersInterface
    * Get parameters
    *
    * @param string $key
-   * @param null $default
+   * @param mixed $default
    *
    * @return mixed
    */
-  public function getParameter(string $key, $default = null);
+  public function getParameter(string $key, mixed $default = null): mixed;
 
   /**
-   * @param array $parameters
+   * @param array<string, mixed> $parameters
    *
    * @return $this
    */
-  public function setParameters(array $parameters): HttpTemplateParametersInterface;
+  public function setParameters(array $parameters): self;
 
   /**
    * Get path

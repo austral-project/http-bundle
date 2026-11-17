@@ -10,9 +10,9 @@
 
 namespace Austral\HttpBundle\Listener;
 
-use Austral\HttpBundle\Annotation\DomainFilter;
+use Austral\EntityBundle\EntityAttributes\EntityAttributes;
+use Austral\HttpBundle\Attribute\DomainFilter;
 
-use Austral\EntityBundle\EntityAnnotation\EntityAnnotations;
 use Austral\EntityBundle\Event\EntityMappingEvent;
 use Austral\EntityBundle\Mapping\EntityMapping;
 
@@ -20,6 +20,8 @@ use Austral\HttpBundle\Mapping\DomainFilterMapping;
 
 /**
  * Austral EntityMapping Listener.
+ * @template T of object
+ *
  * @author Matthieu Beurel <matthieu@austral.dev>
  */
 class EntityMappingListener
@@ -30,31 +32,32 @@ class EntityMappingListener
   }
 
   /**
-   * @param EntityMappingEvent $entityAnnotationEvent
+   * @param EntityMappingEvent<T> $entityAttributeEvent
    *
    * @return void
    * @throws \Exception
    */
-  public function mapping(EntityMappingEvent $entityAnnotationEvent)
+  public function mapping(EntityMappingEvent $entityAttributeEvent): void
   {
-    $initialiseEntitesAnnotations = $entityAnnotationEvent->getEntitiesAnnotations();
+    $initialiseEntitesAttributes = $entityAttributeEvent->getEntitiesAttributes();
     /**
-     * @var EntityAnnotations $entityAnnotation
+     * @var EntityAttributes<T> $entityAttribute
      */
-    foreach($initialiseEntitesAnnotations->all() as $entityAnnotation)
+    foreach($initialiseEntitesAttributes->all() as $entityAttribute)
     {
-      if(array_key_exists(DomainFilter::class, $entityAnnotation->getClassAnnotations()))
+      if(array_key_exists(DomainFilter::class, $entityAttribute->getClassAttributes()))
       {
-        /** @var DomainFilter $domainFilterAnnotation */
-        $domainFilterAnnotation = $entityAnnotation->getClassAnnotations()[DomainFilter::class];
-        if(!$entityMapping = $entityAnnotationEvent->getMapping()->getEntityMapping($entityAnnotation->getClassname()))
+        /** @var DomainFilter $domainFilterAttribute */
+        $domainFilterAttribute = $entityAttribute->getClassAttributes()[DomainFilter::class];
+        if(!$entityMapping = $entityAttributeEvent->getMapping()->getEntityMapping($entityAttribute->getClassname()))
         {
-          $entityMapping = new EntityMapping($entityAnnotation->getClassname(), $entityAnnotation->getSlugger());
+          $entityMapping = new EntityMapping($entityAttribute->getClassname(), $entityAttribute->getSlugger());
         }
+        /** @var DomainFilterMapping<T> $domainFilterMapping */
         $domainFilterMapping = new DomainFilterMapping();
-        $domainFilterMapping->setAutoDomainId($domainFilterAnnotation->autoDomainId);
-        $domainFilterMapping->setForAllDomainEnabled($domainFilterAnnotation->forAllDomainEnabled);
-        $domainFilterMapping->setAutoAttachement($domainFilterAnnotation->autoAttachement);
+        $domainFilterMapping->setAutoDomainId($domainFilterAttribute->autoDomainId);
+        $domainFilterMapping->setForAllDomainEnabled($domainFilterAttribute->forAllDomainEnabled);
+        $domainFilterMapping->setAutoAttachement($domainFilterAttribute->autoAttachement);
 
         if($domainFilterMapping->getAutoDomainId())
         {
@@ -71,7 +74,7 @@ class EntityMappingListener
           }
         }
         $entityMapping->addEntityClassMapping($domainFilterMapping);
-        $entityAnnotationEvent->getMapping()->addEntityMapping($entityAnnotation->getClassname(), $entityMapping);
+        $entityAttributeEvent->getMapping()->addEntityMapping($entityAttribute->getClassname(), $entityMapping);
       }
     }
   }

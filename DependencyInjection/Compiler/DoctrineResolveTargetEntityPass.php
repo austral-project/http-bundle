@@ -1,6 +1,6 @@
 <?php
 /*
- * This file is part of the Austral Website Bundle package.
+ * This file is part of the Austral Http Bundle package.
  *
  * (c) Austral <support@austral.dev>
  *
@@ -11,8 +11,8 @@
 
 namespace Austral\HttpBundle\DependencyInjection\Compiler;
 
-use Doctrine\ORM\Version;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use Doctrine\ORM\Events;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 /**
@@ -27,16 +27,23 @@ class DoctrineResolveTargetEntityPass implements CompilerPassInterface
    */
   public function process(ContainerBuilder $container): void
   {
-    $definition = $container->findDefinition('doctrine.orm.listeners.resolve_target_entity');
     $resolveTargetEntities = $container->getParameter("austral.resolve_target_entities.http");
-    foreach($resolveTargetEntities as $from => $to)
+    if(is_iterable($resolveTargetEntities))
     {
-      $definition->addMethodCall('addResolveTargetEntity', array($from, $to, array(),));
+      $definition = $container->findDefinition('doctrine.orm.listeners.resolve_target_entity');
+      foreach($resolveTargetEntities as $from => $to)
+      {
+        $definition->addMethodCall('addResolveTargetEntity', array($from, $to, array(),));
+      }
+      // DoctrineBundle only registers this listener when "doctrine.orm.resolve_target_entities" is configured.
+      $events = array_column($definition->getTag('doctrine.event_listener'), 'event');
+      foreach([Events::loadClassMetadata, Events::onClassMetadataNotFound] as $event)
+      {
+        if(!in_array($event, $events, true))
+        {
+          $definition->addTag('doctrine.event_listener', ['event' => $event]);
+        }
+      }
     }
-    #if (version_compare(Version::VERSION, '2.5.0-DEV') < 0) {
-    #  $definition->addTag('doctrine.event_listener', array('event' => 'loadClassMetadata'));
-    #} else {
-    #  $definition->addTag('doctrine.event_subscriber', array('connection' => 'default'));
-    #}
   }
 }

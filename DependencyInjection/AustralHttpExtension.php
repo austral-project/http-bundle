@@ -52,7 +52,8 @@ class AustralHttpExtension extends Extension
    */
   protected function loadConfigToAustralBundle(ContainerBuilder $container, YamlFileLoader $loader): void
   {
-    $bundlesConfigPath = $container->getParameter("kernel.project_dir")."/config/bundles.php";
+    $projectDir = $container->getParameter("kernel.project_dir");
+    $bundlesConfigPath = ($projectDir && is_string($projectDir) ? $projectDir : "")."/config/bundles.php";
     if(file_exists($bundlesConfigPath))
     {
       $contents = require $bundlesConfigPath;

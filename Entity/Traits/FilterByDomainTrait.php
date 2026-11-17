@@ -10,12 +10,19 @@
  
 namespace Austral\HttpBundle\Entity\Traits;
 
-use Austral\EntityBundle\Entity\EntityInterface;
+use Austral\EntityBundle\Entity\Entity;
+use Austral\Contracts\Domain\FilterByDomainInterface;
 use Austral\HttpBundle\Services\DomainsManagement;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
  * Austral Translate Entity Social Network Trait.
+ * @template T of object
+ *
+ * @phpstan-require-implements FilterByDomainInterface
+ * @phpstan-require-extends Entity
+ *
+ *
  * @author Matthieu Beurel <matthieu@austral.dev>
  */
 trait FilterByDomainTrait
@@ -38,9 +45,9 @@ trait FilterByDomainTrait
   /**
    * @param string|null $domainId
    *
-   * @return EntityInterface
+   * @return $this
    */
-  public function setDomainId(?string $domainId = DomainsManagement::DOMAIN_ID_MASTER): EntityInterface
+  public function setDomainId(?string $domainId = DomainsManagement::DOMAIN_ID_MASTER): self
   {
     $this->domainId = $domainId;
     return $this;

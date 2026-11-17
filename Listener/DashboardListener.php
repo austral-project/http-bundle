@@ -14,9 +14,12 @@ use Austral\AdminBundle\Event\DashboardEvent;
 
 use Austral\AdminBundle\Dashboard\Values as DashboardValues;
 use Austral\HttpBundle\Services\DomainsManagement;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 /**
  * Austral DashboardListener Listener.
+ * @template T of object
+ *
  * @author Matthieu Beurel <matthieu@austral.dev>
  * @final
  */
@@ -24,38 +27,31 @@ class DashboardListener
 {
 
   /**
-   * @var DomainsManagement
+   * @param DomainsManagement<T> $domainsManagement
    */
-  protected DomainsManagement $domainsManagement;
-
-  /**
-   * @param DomainsManagement $domainsManagement
-   */
-  public function __construct(DomainsManagement $domainsManagement)
+  public function __construct(
+    #[Autowire(service: "austral.http.domains.management")] protected DomainsManagement $domainsManagement)
   {
-    $this->domainsManagement = $domainsManagement;
   }
 
-
   /**
-   * @param DashboardEvent $dashboardEvent
+   * @param DashboardEvent<T> $dashboardEvent
    *
    * @throws \Exception
    */
-  public function dashboard(DashboardEvent $dashboardEvent)
+  public function dashboard(DashboardEvent $dashboardEvent): void
   {
     if($this->domainsManagement->getEnabledDomainWithoutVirtual())
     {
       $dashboardTileDomains = new DashboardValues\Tile("domains");
       $dashboardTileDomains->setEntitled("dashboard.tiles.domains.count.entitled")
         ->setIsTranslatableText(true)
-        ->setColorNum(1)
         ->setPicto("browser")
         ->setPosition(1)
         ->setValue(count($this->domainsManagement->getDomainsWithoutVirtual()));
+      $dashboardTileDomains->setColorNum(1);
 
-      $dashboardEvent->getDashboardBlock()->getChild("austral_tiles_values")
-        ->addValue($dashboardTileDomains);
+      $dashboardEvent->getDashboardBlock()->getChild("austral_tiles_values")?->addValue($dashboardTileDomains);
     }
   }
 

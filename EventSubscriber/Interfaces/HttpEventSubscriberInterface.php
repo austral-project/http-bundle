@@ -14,36 +14,48 @@ use Austral\HttpBundle\Event\Interfaces\HttpEventInterface;
 
 /**
  * Austral Http EventSubscriber Interface.
+ * @template T of object
+ *
  * @author Matthieu Beurel <matthieu@austral.dev>
  */
 interface HttpEventSubscriberInterface
 {
 
   /**
-   * @return array
+   * @return array<string, string>
    */
   public static function getSubscribedEvents(): array;
 
-  /**
-   * @param HttpEventInterface $httpEvent
-   *
-   * @return mixed
-   */
-  public function onRequest(HttpEventInterface $httpEvent);
 
   /**
-   * @param HttpEventInterface $httpEvent
-   *
-   * @return mixed
+   * @param HttpEventInterface<T> $httpEvent
+   * @return void
    */
-  public function onController(HttpEventInterface $httpEvent);
+  public function onRequestInitialise(HttpEventInterface $httpEvent): void;
 
   /**
-   * @param HttpEventInterface $httpEvent
-   *
-   * @return mixed
+   * @param HttpEventInterface<T> $httpEvent
+   * @return void
    */
-  public function onResponse(HttpEventInterface $httpEvent);
+  public function onRequest(HttpEventInterface $httpEvent): void;
+
+  /**
+   * @param HttpEventInterface<T> $httpEvent
+   * @return void
+   */
+  public function onController(HttpEventInterface $httpEvent): void;
+
+  /**
+   * @param HttpEventInterface<T> $httpEvent
+   * @return void
+   */
+  public function onResponse(HttpEventInterface $httpEvent): void;
+
+  /**
+   * @param HttpEventInterface<T> $httpEvent
+   * @return void
+   */
+  public function onException(HttpEventInterface $httpEvent): void;
 
 
 }

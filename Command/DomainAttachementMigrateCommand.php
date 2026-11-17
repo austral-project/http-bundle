@@ -11,16 +11,24 @@
 namespace Austral\HttpBundle\Command;
 
 use Austral\EntityBundle\Entity\Entity;
+use Austral\Contracts\Entity\EntityInterface;
+use Austral\EntityBundle\EntityManager\EntityManager;
 use Austral\EntityBundle\Mapping\EntityMapping;
+use Austral\EntityBundle\Mapping\Mapping;
+use Austral\Contracts\Domain\FilterByDomainInterface;
 use Austral\HttpBundle\Mapping\DomainFilterMapping;
+use Austral\HttpBundle\Services\DomainsManagement;
 use Austral\ToolsBundle\Command\Base\Command;
 use Exception;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 /**
  * Austral Roles Command.
+ * @template T of Entity
+ *
  * @author Matthieu Beurel <matthieu@austral.dev>
  * @final
  */
@@ -40,7 +48,7 @@ class DomainAttachementMigrateCommand extends Command
   /**
    * {@inheritdoc}
    */
-  protected function configure()
+  protected function configure(): void
   {
     $this
       ->setDefinition([
@@ -57,44 +65,64 @@ EOF
   }
 
   /**
+   * DomainAttachementMigrateCommand constructor
+   *
+   * @param EntityManager<T> $entityManager
+   * @param Mapping<T> $mapping
+   * @param DomainsManagement<T> $domainsManagement
+   * @param string|null $name
+   */
+  public function __construct(
+    #[Autowire(service: "austral.entity_manager")] protected EntityManager $entityManager,
+    #[Autowire(service: "austral.entity.mapping")] protected Mapping $mapping,
+    #[Autowire(service: "austral.http.domains.management")] protected DomainsManagement $domainsManagement,
+    ?string $name = null
+  )
+  {
+    parent::__construct($name);
+  }
+
+
+  /**
    * @param InputInterface $input
    * @param OutputInterface $output
    *
    * @throws Exception
    */
-  protected function executeCommand(InputInterface $input, OutputInterface $output)
+  protected function executeCommand(InputInterface $input, OutputInterface $output): void
   {
-    $entityManager = $this->container->get("austral.entity_manager");
-    $domainsManagement = $this->container->get('austral.http.domains.management')->initialize();
-
-    /** @var EntityMapping $entityMapping */
-    foreach($this->container->get('austral.entity.mapping')->getEntitiesMapping() as $entityMapping)
-    {
-      /** @var DomainFilterMapping $domainFilterMapping */
-      if($domainFilterMapping = $entityMapping->getEntityClassMapping(DomainFilterMapping::class))
-      {
-        if($domainFilterMapping->getAutoDomainId())
+    $domainMaster = $this->domainsManagement->getDomainMaster();
+    if($domainMaster) {
+      /** @var EntityMapping<T> $entityMapping */
+      foreach ($this->mapping->getEntitiesMapping() as $entityMapping) {
+        /** @var DomainFilterMapping<T> $domainFilterMapping */
+        if ($domainFilterMapping = $entityMapping->getEntityClassMapping(DomainFilterMapping::class))
         {
-          $queryBuilder = $entityManager->getRepository($entityMapping->entityClass)
-            ->createQueryBuilder("root");
-          if(!$input->getOption("force"))
+          $repository = $this->entityManager->getRepository($entityMapping->entityClass);
+          if ($domainFilterMapping->getAutoDomainId() && $repository)
           {
-            $queryBuilder->where("root.domainId IS NULL");
-          }
-          $objects = $queryBuilder->getQuery()
-            ->execute();
-          if($objects)
-          {
-            /** @var Entity $object */
-            foreach($objects as $object)
+            $queryBuilder = $repository->createQueryBuilder("root");
+            if (!$input->getOption("force"))
             {
-              $object->setDomainId($domainsManagement->getDomainMaster()->getId());
-              $entityManager->update($object, false);
+              $queryBuilder->where("root.domainId IS NULL");
+            }
+            $objects = $queryBuilder->getQuery()->execute();
+            if ($objects)
+            {
+              /** @var EntityInterface<T> $object */
+              foreach ($objects as $object)
+              {
+                if($object instanceof FilterByDomainInterface)
+                {
+                  $object->setDomainId($domainMaster->getId());
+                  $this->entityManager->update($object, false);
+                }
+              }
             }
           }
         }
+        $this->entityManager->flush();
       }
-      $entityManager->flush();
     }
   }
 

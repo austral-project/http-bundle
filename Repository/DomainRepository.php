@@ -18,6 +18,10 @@ use Doctrine\ORM\Query\QueryException;
 
 /**
  * Austral Domain Repository.
+ * @template T of object
+ *
+ * @extends EntityRepository<T>
+ *
  * @author Matthieu Beurel <matthieu@austral.dev>
  * @final
  */
@@ -27,10 +31,10 @@ class DomainRepository extends EntityRepository
   /**
    * @param string $host
    *
-   * @return DomainInterface|null
+   * @return DomainInterface<T>|null
    * @throws NonUniqueResultException
    */
-  public function retreiveByDomain(string $host): ?DomainInterface
+  public function retrieveByDomain(string $host): ?DomainInterface
   {
     $queryBuilder = $this->createQueryBuilder('root')
       ->where("root.domain = :domain")
@@ -48,10 +52,10 @@ class DomainRepository extends EntityRepository
   }
 
   /**
-   * @return DomainInterface|null
+   * @return DomainInterface<T>|null
    * @throws \Doctrine\ORM\NonUniqueResultException
    */
-  public function retreiveByMaster(): ?DomainInterface
+  public function retrieveByMaster(): ?DomainInterface
   {
     $queryBuilder = $this->createQueryBuilder('root')
       ->where("root.isMaster = :isMaster")
@@ -70,7 +74,7 @@ class DomainRepository extends EntityRepository
   }
 
   /**
-   * @return array
+   * @return array<string, DomainInterface<T>>
    * @throws QueryException
    */
   public function selectAllEnabledDomains(): array
@@ -83,6 +87,7 @@ class DomainRepository extends EntityRepository
 
     $query = $queryBuilder->getQuery();
     try {
+      /** @var array<string, DomainInterface<T>> $objects */
       $objects = $query->execute();
     } catch (NoResultException $e) {
       $objects = array();

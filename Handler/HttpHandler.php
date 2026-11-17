@@ -13,27 +13,32 @@ use Austral\HttpBundle\Handler\Interfaces\HttpHandlerInterface;
 use Austral\HttpBundle\Services\DomainsManagement;
 use Austral\HttpBundle\Template\Interfaces\HttpTemplateParametersInterface;
 
-use App\Entity\Austral\SecurityBundle\User;
 
-use Austral\EntityBundle\EntityManager\EntityManager;
-
+use Austral\SecurityBundle\Entity\Interfaces\UserInterface;
 use Austral\ToolsBundle\Services\Debug;
 
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Symfony\Component\Translation\IdentityTranslator;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 use \LogicException;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Austral AdminHandler Abstract.
+ * @template T of object
+ *
+ * @implements HttpHandlerInterface<T>
  *
  * @author Matthieu Beurel <matthieu@austral.dev>
  *
@@ -43,40 +48,39 @@ abstract class HttpHandler implements HttpHandlerInterface
 {
 
   /**
-   * @var ContainerInterface
-   */
-  protected ContainerInterface $container;
-
-  /**
    * @var Request|null
    */
-  protected ?Request $request;
+  protected ?Request $request = null;
 
   /**
-   * @var DomainsManagement
+   * @var SessionInterface|null
    */
-  protected DomainsManagement $domainsManagement;
+  protected ?SessionInterface $session = null;
 
   /**
-   * @var EventDispatcherInterface
+   * @var DomainsManagement<T>|null
    */
-  protected EventDispatcherInterface $dispatcher;
+  protected ?DomainsManagement $domainsManagement = null;
 
   /**
-   * @var TokenStorageInterface
+   * @var HttpTemplateParametersInterface<T>|null
    */
-  protected TokenStorageInterface $tokenStorage;
+  protected ?HttpTemplateParametersInterface $templateParameters = null;
 
   /**
-   * @var HttpTemplateParametersInterface
+   * @var FormFactoryInterface|null
    */
-  protected HttpTemplateParametersInterface $templateParameters;
+  protected ?FormFactoryInterface $formFactory = null;
+
+  /**
+   * @var string|null
+   */
+  public ?string $handlerMethod = null;
 
   /**
    * @var string|null
    */
   protected ?string $redirectUrl = null;
-
 
   /**
    * @var int
@@ -89,52 +93,40 @@ abstract class HttpHandler implements HttpHandlerInterface
   protected ?string $userTabId = null;
 
   /**
-   * @var Debug|null
-   */
-  protected ?Debug $debug;
-
-  /**
-   * @var FormFactoryInterface
-   */
-  protected FormFactoryInterface $formFactory;
-
-  /**
    * Handler constructor.
    *
-   * @param RequestStack $requestStack
+   * @param ContainerInterface $container
    * @param EventDispatcherInterface $dispatcher
    * @param TokenStorageInterface $tokenStorage
+   * @param AuthorizationCheckerInterface $authorizationChecker
+   * @param TranslatorInterface $translator
+   * @param RouterInterface $router
    * @param Debug|null $debug
    */
-  public function __construct(RequestStack $requestStack,
-    EventDispatcherInterface $dispatcher,
-    TokenStorageInterface $tokenStorage,
-    ?Debug $debug
+  public function __construct(
+    #[Autowire(service: "service_container")] protected ContainerInterface $container,
+    #[Autowire(service: 'event_dispatcher')] protected EventDispatcherInterface $dispatcher,
+    #[Autowire(service: 'security.token_storage')] protected TokenStorageInterface $tokenStorage,
+    #[Autowire(service: 'security.authorization_checker')] protected AuthorizationCheckerInterface $authorizationChecker,
+    #[Autowire(service: 'translator')] protected TranslatorInterface $translator,
+    #[Autowire(service: 'router')] protected RouterInterface $router,
+    #[Autowire(service: 'austral.tools.debug')] protected ?Debug $debug,
   )
   {
-    $this->dispatcher = $dispatcher;
-    $this->request = $requestStack->getCurrentRequest();
-    $this->tokenStorage = $tokenStorage;
-    $this->debug = $debug;
   }
 
   /**
-   * setContainer
-   *
-   * @param ContainerInterface $container
-   * @return $this
+   * @inheritDoc
    */
-  public function setContainer(ContainerInterface $container): HttpHandler
+  public function setRequestStack(RequestStack $request): self
   {
-    $this->container = $container;
+    $this->request = $request->getCurrentRequest();
+    $this->session = $this->request?->getSession();
     return $this;
   }
 
   /**
-   * setFormFactory
-   *
-   * @param FormFactoryInterface $formFactory
-   * @return $this
+   * @inheritDoc
    */
   public function setFormFactory(FormFactoryInterface $formFactory): HttpHandler
   {
@@ -143,57 +135,32 @@ abstract class HttpHandler implements HttpHandlerInterface
   }
 
   /**
-   * getFormFactory
-   *
-   * @return FormFactoryInterface
+   * @inheritDoc
    */
-  public function getFormFactory(): FormFactoryInterface
+  public function getFormFactory(): ?FormFactoryInterface
   {
     return $this->formFactory;
   }
 
   /**
-   * Get request
-   * @return Request|null
+   * @inheritDoc
    */
-  public function getRequest(): ?Request
-  {
-    return $this->request;
-  }
-
-  /**
-   * @param Request|null $request
-   *
-   * @return $this
-   */
-  public function setRequest(?Request $request): HttpHandler
-  {
-    $this->request = $request;
-    return $this;
-  }
-
-  /**
-   * @return DomainsManagement
-   */
-  public function getDomainsManagement(): DomainsManagement
+  public function getDomainsManagement(): ?DomainsManagement
   {
     return $this->domainsManagement;
   }
 
   /**
-   * @param DomainsManagement $domainsManagement
-   *
-   * @return HttpHandler
+   * @inheritDoc
    */
-  public function setDomainsManagement(DomainsManagement $domainsManagement): HttpHandler
+  public function setDomainsManagement(DomainsManagement $domainsManagement): self
   {
     $this->domainsManagement = $domainsManagement;
     return $this;
   }
 
   /**
-   * Get dispatcher
-   * @return EventDispatcherInterface
+   * @inheritDoc
    */
   public function getDispatcher(): EventDispatcherInterface
   {
@@ -201,34 +168,17 @@ abstract class HttpHandler implements HttpHandlerInterface
   }
 
   /**
-   * @param EventDispatcherInterface $dispatcher
-   *
-   * @return HttpHandler
+   * @inheritDoc
    */
-  public function setDispatcher(EventDispatcherInterface $dispatcher): HttpHandler
+  public function executeHandlerMethod(mixed ...$args): void
   {
-    $this->dispatcher = $dispatcher;
-    return $this;
-  }
-
-  /**
-   * executeHandlerMethod
-   */
-  public function executeHandlerMethod()
-  {
-    if(method_exists($this, $this->handlerMethod)) {
-      call_user_func_array(array($this, $this->handlerMethod), func_get_args());
+    if (
+      is_string($this->handlerMethod)
+      && is_callable([$this, $this->handlerMethod])
+    ) {
+      $method = $this->handlerMethod;
+      $this->$method(...$args);
     }
-  }
-
-  /**
-   * @return EntityManager|null
-   */
-  public function getEntityManager(): ?EntityManager
-  {
-    /** @var EntityManager $entityManager */
-    $entityManager = $this->container->get('austral.entity_manager');
-    return $entityManager;
   }
 
   /**
@@ -240,9 +190,7 @@ abstract class HttpHandler implements HttpHandlerInterface
   }
 
   /**
-   * @param string|null $userTabId
-   *
-   * @return $this
+   * @inheritDoc
    */
   public function setUserTabId(?string $userTabId): HttpHandler
   {
@@ -251,108 +199,99 @@ abstract class HttpHandler implements HttpHandlerInterface
   }
 
   /**
-   * @param $role
-   *
-   * @return bool
+   * @inheritDoc
    */
-  public function isGranted($role): bool
+  public function isGranted(mixed $role): bool
   {
-    return $this->container->get('security.authorization_checker')->isGranted($role);
+    return $this->authorizationChecker->isGranted($role);
   }
 
   /**
-   * @return User|string|null
+   * @inheritDoc
    */
-  public function getUser()
+  public function getUser(): ?UserInterface
   {
-    return $this->tokenStorage->getToken() ? $this->tokenStorage->getToken()->getUser() : null;
+    $user = $this->tokenStorage->getToken()?->getUser();
+    if($user instanceof UserInterface)
+    {
+      return $user;
+    }
+    return null;
   }
 
   /**
-   * @return HttpTemplateParametersInterface
+   * @inheritDoc
    */
-  public function getTemplateParameters() : HttpTemplateParametersInterface
+  public function getTemplateParameters() : ?HttpTemplateParametersInterface
   {
     return $this->templateParameters;
   }
 
   /**
-   * @param HttpTemplateParametersInterface $templateParameters
-   *
-   * @return $this
+   * @inheritDoc
    */
-  public function setTemplateParameters(HttpTemplateParametersInterface $templateParameters): HttpHandler
+  public function setTemplateParameters(HttpTemplateParametersInterface $templateParameters): self
   {
     $this->templateParameters = $templateParameters;
     return $this;
   }
 
   /**
-   * Returns a NotFoundHttpException.
-   *
-   * This will result in a 404 response code. Usage example:
-   *
-   *     throw $this->createNotFoundException('Page not found!');
+   * @inheritDoc
    */
-  public function createNotFoundException(string $message = 'Not Found', \Throwable $previous = null): NotFoundHttpException
+  public function createNotFoundException(string $message = 'Not Found', ?\Throwable $previous = null): NotFoundHttpException
   {
     return new NotFoundHttpException($message, $previous);
   }
 
   /**
-   * @param string $message
+   * @inheritDoc
    */
-  public function pageNotFound(string $message = "The page not found !!!!")
+  public function pageNotFound(string $message = "The page not found !!!!"): void
   {
     throw $this->createNotFoundException($message);
   }
 
   /**
-   * Generates a URL from the given parameters.
-   *
-   * @param string $route         The name of the route
-   * @param mixed          $parameters    An array of parameters
-   * @param bool|string    $referenceType The type of reference (one of the constants in UrlGeneratorInterface)
-   *
-   * @return string The generated URL
-   * @see UrlGeneratorInterface
+   * @inheritDoc
    */
-  public function generateUrl(string $route, $parameters = array(), $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH, $env = null): string
+  public function generateUrl(string $route, array $parameters = array(), int $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH, ?string $env = null): string
   {
-    return $this->container->get('router')->generate($route, $parameters, $referenceType);
+    return $this->router->generate($route, $parameters, $referenceType);
   }
 
   /**
-   * Adds a flash message to the current session for type.
-   *
-   * @throws LogicException
+   * @inheritDoc
    */
-  public function addFlash(string $type, $message): void
+  public function addFlash(string $type, string $message): void
   {
-    if (!$this->request->hasSession()) {
+    if (!$this->session) {
       throw new LogicException('You can not use the addFlash method if sessions are disabled. Enable them in "config/packages/framework.yaml".');
     }
-    $this->getSession()->getFlashBag()->add($type, $message);
+    if($this->session instanceof Session)
+    {
+      $this->session->getFlashBag()->add($type, $message);
+    }
   }
 
   /**
-   * @return SessionInterface|null
+   * @inheritDoc
    */
   public function getSession(): ?SessionInterface
   {
-    return $this->request->getSession();
+    return $this->session;
   }
 
   /**
-   * @return object|IdentityTranslator|null
+   * @inheritDoc
    */
-  public function getTranslate()
+  public function getTranslate(): TranslatorInterface
   {
-    return $this->container->get("translator");
+    return $this->translator;
   }
 
   /**
-   * @return string|null
+   * @inheritDoc
    */
   public function getRedirectUrl(): ?string
   {
@@ -360,37 +299,33 @@ abstract class HttpHandler implements HttpHandlerInterface
   }
 
   /**
-   * @param string $redirectUrl
-   *
-   * @return $this
+   * @inheritDoc
    */
-  public function setRedirectUrl(string $redirectUrl): HttpHandler
+  public function setRedirectUrl(string $redirectUrl): self
   {
     $this->redirectUrl = $redirectUrl;
     return $this;
   }
 
   /**
-   * @return int
+   * @inheritDoc
    */
-  public function getRedirectStatus(): ?int
+  public function getRedirectStatus(): int
   {
     return $this->redirectStatus;
   }
 
   /**
-   * @param string $redirectStatus
-   *
-   * @return $this
+   * @inheritDoc
    */
-  public function setRedirectStatus(string $redirectStatus): HttpHandler
+  public function setRedirectStatus(int $redirectStatus): self
   {
     $this->redirectStatus = $redirectStatus;
     return $this;
   }
 
   /**
-   * @return bool
+   * @inheritDoc
    */
   public function isDevEnv(): bool
   {

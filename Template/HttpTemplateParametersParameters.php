@@ -14,13 +14,17 @@ use Austral\HttpBundle\Template\Interfaces\HttpTemplateParametersInterface;
 
 /**
  * Austral Template Parameters.
+ * @template T of object
+ *
+ * @implements HttpTemplateParametersInterface<T>
+ *
  * @author Matthieu Beurel <matthieu@austral.dev>
  */
 abstract class HttpTemplateParametersParameters implements HttpTemplateParametersInterface
 {
 
   /**
-   * @var array
+   * @var array<string, mixed>
    */
   protected array $parameters = array();
 
@@ -34,13 +38,8 @@ abstract class HttpTemplateParametersParameters implements HttpTemplateParameter
    */
   protected ?string $name = "default";
 
-
-  public function __construct()
-  {
-  }
-
   /**
-   * @return array
+   * @inheritDoc
    */
   public function __serialize()
   {
@@ -48,7 +47,7 @@ abstract class HttpTemplateParametersParameters implements HttpTemplateParameter
   }
 
   /**
-   * @return string|null
+   * @inheritDoc
    */
   public function getName(): ?string
   {
@@ -56,23 +55,18 @@ abstract class HttpTemplateParametersParameters implements HttpTemplateParameter
   }
 
   /**
-   * @param string|null $name
-   * @return $this
+   * @inheritDoc
    */
-  public function setName(?string $name): HttpTemplateParametersParameters
+  public function setName(?string $name = null): self
   {
     $this->name = $name;
     return $this;
   }
 
   /**
-   * @param string $key
-   * @param $value
-   * @param bool $merge
-   *
-   * @return $this
+   * @inheritDoc
    */
-  public function addParameters(string $key, $value, bool $merge = false): HttpTemplateParametersParameters
+  public function addParameters(string $key, mixed $value, bool $merge = false): self
   {
     if($merge && array_key_exists($key, $this->parameters))
     {
@@ -86,11 +80,9 @@ abstract class HttpTemplateParametersParameters implements HttpTemplateParameter
   }
 
   /**
-   * @param string $key
-   *
-   * @return $this
+   * @inheritDoc
    */
-  public function removeParameters(string $key): HttpTemplateParametersParameters
+  public function removeParameters(string $key): self
   {
     if(array_key_exists($key, $this->parameters))
     {
@@ -100,11 +92,7 @@ abstract class HttpTemplateParametersParameters implements HttpTemplateParameter
   }
 
   /**
-   * Get parameters
-   *
-   * @param string $key
-   *
-   * @return bool
+   * @inheritDoc
    */
   public function hasParameter(string $key): bool
   {
@@ -112,8 +100,7 @@ abstract class HttpTemplateParametersParameters implements HttpTemplateParameter
   }
 
   /**
-   * Get parameters
-   * @return array
+   * @inheritDoc
    */
   public function getParameters(): array
   {
@@ -126,22 +113,15 @@ abstract class HttpTemplateParametersParameters implements HttpTemplateParameter
   }
 
   /**
-   * Get parameters
-   *
-   * @param string $key
-   * @param null $default
-   *
-   * @return mixed
+   * @inheritDoc
    */
-  public function getParameter(string $key, $default = null)
+  public function getParameter(string $key, mixed $default = null): mixed
   {
     return array_key_exists($key, $this->parameters) ? $this->parameters[$key] : $default;
   }
 
   /**
-   * @param array $parameters
-   *
-   * @return $this
+   * @inheritDoc
    */
   public function setParameters(array $parameters): HttpTemplateParametersParameters
   {
@@ -150,8 +130,7 @@ abstract class HttpTemplateParametersParameters implements HttpTemplateParameter
   }
 
   /**
-   * Get path
-   * @return string|null
+   * @inheritDoc
    */
   public function getPath(): ?string
   {
@@ -159,9 +138,7 @@ abstract class HttpTemplateParametersParameters implements HttpTemplateParameter
   }
 
   /**
-   * @param string|null $path
-   *
-   * @return $this
+   * @inheritDoc
    */
   public function setPath(?string $path): HttpTemplateParametersParameters
   {

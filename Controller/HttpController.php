@@ -13,41 +13,43 @@ namespace Austral\HttpBundle\Controller;
 use Austral\HttpBundle\Controller\Interfaces\HttpControllerInterface;
 use Austral\HttpBundle\Handler\Interfaces\HttpHandlerInterface;
 use Austral\HttpBundle\Template\Interfaces\HttpTemplateParametersInterface;
-use Symfony\Component\DependencyInjection\ContainerAwareInterface;
-use Symfony\Component\DependencyInjection\ContainerAwareTrait;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Translation\IdentityTranslator;
 use Twig\Environment;
 
 
 /**
  * Austral Admin Controller Abstract.
+ * @template T of object
+ *
+ * @implements HttpControllerInterface<T>
+ *
  * @author Matthieu Beurel <matthieu@austral.dev>
  * @abstract
  */
-abstract class HttpController implements HttpControllerInterface, ContainerAwareInterface
+abstract class HttpController implements HttpControllerInterface
 {
-  use ContainerAwareTrait;
+
+  public function __construct(
+    #[Autowire(service: "service_container")] protected ContainerInterface $container,
+    #[Autowire(service: "router")] protected RouterInterface $router,
+    #[Autowire(service: "twig")] protected Environment $twig
+  )
+  {
+
+  }
 
   /**
-   * @var HttpHandlerInterface
+   * @var HttpHandlerInterface<T>|null
    */
-  protected HttpHandlerInterface $handlerManager;
-
-  /**
-   * @var Environment|null
-   */
-  protected ?Environment $twig = null;
+  protected ?HttpHandlerInterface $handlerManager = null;
 
   /**
    * @var TokenStorageInterface|null
@@ -55,68 +57,51 @@ abstract class HttpController implements HttpControllerInterface, ContainerAware
   protected ?TokenStorageInterface $tokenStorage = null;
 
   /**
-   * HttpController constructor
-   *
-   * @param Environment|null $twig
+   * @inheritDoc
    */
-  public function __construct(?Environment $twig = null)
+  public function setContainer(ContainerInterface $container): self
   {
-    $this->twig = $twig;
-  }
-
-  /**
-   * setTwig
-   *
-   * @param Environment|null $twig
-   * @return HttpController
-   */
-  public function setTwig(?Environment $twig = null): HttpController
-  {
-    $this->twig = $twig;
+    $this->container = $container;
     return $this;
   }
 
   /**
-   * setTwig
-   *
-   * @param TokenStorageInterface|null $tokenStorage
-   * @return HttpController
+   * @inheritDoc
    */
-  public function setTokenStorage(?TokenStorageInterface $tokenStorage = null): HttpController
+  public function setTokenStorage(?TokenStorageInterface $tokenStorage = null): self
   {
     $this->tokenStorage = $tokenStorage;
     return $this;
   }
 
   /**
-   * @param HttpHandlerInterface $handlerManager
-   *
-   * @return HttpController
+   * @inheritDoc
    */
-  public function setHandlerManager(HttpHandlerInterface $handlerManager): HttpController
+  public function setHandlerManager(HttpHandlerInterface $handlerManager): self
   {
     $this->handlerManager = $handlerManager;
     return $this;
   }
 
   /**
-   * @var HttpTemplateParametersInterface
+   * @var HttpTemplateParametersInterface<T>|null
    */
-  protected HttpTemplateParametersInterface $templateParameters;
+  protected ?HttpTemplateParametersInterface $templateParameters = null;
 
   /**
-   * @param HttpTemplateParametersInterface $templateParameters
-   *
-   * @return HttpController
+   * @inheritDoc
    */
-  public function setTemplateParameters(HttpTemplateParametersInterface $templateParameters): HttpController
+  public function setTemplateParameters(?HttpTemplateParametersInterface $templateParameters = null): self
   {
     $this->templateParameters = $templateParameters;
     return $this;
   }
 
   /**
-   * Returns true if the service id is defined.
+   * has
+   *
+   * @param string $id
+   * @return bool
    */
   protected function has(string $id): bool
   {
@@ -124,45 +109,35 @@ abstract class HttpController implements HttpControllerInterface, ContainerAware
   }
 
   /**
-   * Gets a container service by its id.
+   * get
    *
-   * @return object The service
+   * @param string $id
+   * @return object|null
    */
-  protected function get(string $id): object
+  protected function get(string $id): ?object
   {
     return $this->container->get($id);
   }
 
   /**
-   * Generates a URL from the given parameters.
+   * generateUrl
    *
-   * @see UrlGeneratorInterface
+   * @param string $route
+   * @param array<string, mixed> $parameters
+   * @param int $referenceType
+   * @return string
    */
   protected function generateUrl(string $route, array $parameters = [], int $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH): string
   {
-    return $this->container->get('router')->generate($route, $parameters, $referenceType);
+    return $this->router->generate($route, $parameters, $referenceType);
   }
 
   /**
    * @return UserInterface|null
    */
-  public function getUser(): ?UserInterface
+  protected function getUser(): ?UserInterface
   {
     return $this->tokenStorage && $this->tokenStorage->getToken() ? $this->tokenStorage->getToken()->getUser() : null;
-  }
-
-  /**
-   * Forwards the request to another controller.
-   *
-   * @param string $controller The controller name (a string like Bundle\BlogBundle\Controller\PostController::indexAction)
-   */
-  protected function forward(string $controller, array $path = [], array $query = []): Response
-  {
-    $request = $this->container->get('request_stack')->getCurrentRequest();
-    $path['_controller'] = $controller;
-    $subRequest = $request->duplicate($query, null, $path);
-
-    return $this->container->get('http_kernel')->handle($subRequest, HttpKernelInterface::SUB_REQUEST);
   }
 
   /**
@@ -174,7 +149,12 @@ abstract class HttpController implements HttpControllerInterface, ContainerAware
   }
 
   /**
-   * Returns a RedirectResponse to the given route with the given parameters.
+   * redirectToRoute
+   *
+   * @param string $route
+   * @param array<string, mixed> $parameters
+   * @param int $status
+   * @return RedirectResponse
    */
   protected function redirectToRoute(string $route, array $parameters = [], int $status = 302): RedirectResponse
   {
@@ -182,52 +162,32 @@ abstract class HttpController implements HttpControllerInterface, ContainerAware
   }
 
   /**
-   * @return Request|null
-   */
-  protected function getRequest(): ?Request
-  {
-    return $this->container->get("request_stack")->getCurrentRequest();
-  }
-
-  /**
-   * @return SessionInterface|null
-   */
-  protected function getSession(): ?SessionInterface
-  {
-    if($this->getRequest())
-    {
-      return $this->getRequest()->getSession();
-    }
-    return null;
-  }
-
-  /**
-   * Returns a rendered view.
+   * renderView
+   *
+   * @param string $view
+   * @param array<string, mixed> $parameters
+   * @return string
+   * @throws \Twig\Error\LoaderError
+   * @throws \Twig\Error\RuntimeError
+   * @throws \Twig\Error\SyntaxError
    */
   protected function renderView(string $view, array $parameters = []): string
   {
-    if($session = $this->getSession())
-    {
-      if($flashMessages = $session->getFlashBag()->all())
-      {
-        $parameters['flashMessages'] = $flashMessages;
-        $session->getFlashBag()->clear();
-      }
-    }
-    if (!$this->twig) {
-      throw new \LogicException('You can not use the "renderView" method if the Twig Bundle is not available. Try running "composer require symfony/twig-bundle".');
-    }
     return $this->twig->render($view, $parameters);
   }
 
   /**
-   * @param string $view
-   * @param array $parameters
-   * @param Response|null $response
+   * render
    *
+   * @param string $view
+   * @param array<string, mixed> $parameters
+   * @param Response|null $response
    * @return Response
+   * @throws \Twig\Error\LoaderError
+   * @throws \Twig\Error\RuntimeError
+   * @throws \Twig\Error\SyntaxError
    */
-  protected function render(string $view, array $parameters = [], Response $response = null): Response
+  protected function render(string $view, array $parameters = [], ?Response $response = null): Response
   {
     $content = $this->renderView($view, $parameters);
     if (null === $response) {
@@ -238,57 +198,17 @@ abstract class HttpController implements HttpControllerInterface, ContainerAware
   }
 
   /**
-   * Returns a JsonResponse that uses the serializer component if enabled, or json_encode.
+   * json
+   *
+   * @param string $data
+   * @param int $status
+   * @param array<string, mixed> $headers
+   * @param array<string, mixed> $context
+   * @return JsonResponse
    */
-  protected function json($data, int $status = 200, array $headers = [], array $context = []): JsonResponse
+  protected function json(string $data, int $status = 200, array $headers = [], array $context = []): JsonResponse
   {
-    if ($this->container->has('serializer')) {
-      $json = $this->container->get('serializer')->serialize($data, 'json', array_merge([
-        'json_encode_options' => JsonResponse::DEFAULT_ENCODING_OPTIONS,
-      ], $context));
-
-      return new JsonResponse($json, $status, $headers, true);
-    }
-
     return new JsonResponse($data, $status, $headers);
-  }
-
-  /**
-   * @return object|IdentityTranslator|null
-   */
-  protected function getTranslate()
-  {
-    return $this->container->get("translator");
-  }
-
-  /**
-   * Returns a NotFoundHttpException.
-   *
-   * This will result in a 404 response code. Usage example:
-   *
-   *     throw $this->createNotFoundException('Page not found!');
-   */
-  protected function createNotFoundException(string $message = 'Not Found', \Throwable $previous = null): NotFoundHttpException
-  {
-    return new NotFoundHttpException($message, $previous);
-  }
-
-  /**
-   * Returns an AccessDeniedException.
-   *
-   * This will result in a 403 response code. Usage example:
-   *
-   *     throw $this->createAccessDeniedException('Unable to access this page!');
-   *
-   * @throws \LogicException If the Security component is not available
-   */
-  protected function createAccessDeniedException(string $message = 'Access Denied.', \Throwable $previous = null): AccessDeniedException
-  {
-    if (!class_exists(AccessDeniedException::class)) {
-      throw new \LogicException('You can not use the "createAccessDeniedException" method if the Security component is not available. Try running "composer require symfony/security-bundle".');
-    }
-
-    return new AccessDeniedException($message, $previous);
   }
 
 }

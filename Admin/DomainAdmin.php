@@ -10,7 +10,7 @@
  
 namespace Austral\HttpBundle\Admin;
 use App\Entity\Austral\HttpBundle\Domain;
-use Austral\EntityBundle\Entity\EntityInterface;
+use Austral\Contracts\Entity\EntityInterface;
 use Austral\EntityBundle\Repository\EntityRepository;
 use Austral\FormBundle\Mapper\Fieldset;
 use Austral\FormBundle\Mapper\GroupFields;
@@ -48,7 +48,7 @@ class DomainAdmin extends Admin implements AdminModuleInterface
   /**
    * @param ListAdminEvent $listAdminEvent
    */
-  public function configureListMapper(ListAdminEvent $listAdminEvent)
+  public function configureListMapper(ListAdminEvent $listAdminEvent): void
   {
     $isGrantedRoot = $listAdminEvent->getAdminHandler()->isGranted("ROLE_ROOT");
 

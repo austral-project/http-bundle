@@ -18,6 +18,10 @@ use Doctrine\ORM\Query\QueryException;
 
 /**
  * Austral Domain EntityManager.
+ * @template T of object
+ *
+ * @extends EntityManager<T>>
+ *
  * @author Matthieu Beurel <matthieu@austral.dev>
  * @final
  */
@@ -25,47 +29,55 @@ class DomainEntityManager extends EntityManager
 {
 
   /**
-   * @var DomainRepository
+   * @param class-string<T>|null $entity
+   * @return DomainRepository<T>|null
    */
-  protected $repository;
+  public function getRepository(?string $entity = null): ?DomainRepository
+  {
+    /** @var DomainRepository<T>|null $repository */
+    $repository = $this->repository;
+    return $repository;
+  }
 
   /**
-   * @param array $values
+   * @param array<string, mixed> $values
    *
-   * @return DomainInterface
+   * @return DomainInterface<T>
    */
   public function create(array $values = array()): DomainInterface
   {
-    return parent::create($values);
+    /** @var DomainInterface<T> $object */
+    $object = parent::create($values);
+    return $object;
   }
 
   /**
    * @param string $host
    *
-   * @return DomainInterface|null
+   * @return DomainInterface<T>|null
    * @throws \Doctrine\ORM\NonUniqueResultException
    */
-  public function retreiveByDomain(string $host): ?DomainInterface
+  public function retrieveByDomain(string $host): ?DomainInterface
   {
-    return $this->repository->retreiveByDomain($host);
+    return $this->getRepository()?->retrieveByDomain($host);
   }
 
   /**
-   * @return DomainInterface|null
+   * @return DomainInterface<T>|null
    * @throws \Doctrine\ORM\NonUniqueResultException
    */
-  public function retreiveByMaster(): ?DomainInterface
+  public function retrieveByMaster(): ?DomainInterface
   {
-    return $this->repository->retreiveByMaster();
+    return $this->getRepository()?->retrieveByMaster();
   }
 
   /**
-   * @return array
+   * @return array<string, DomainInterface<T>>
    * @throws QueryException
    */
   public function selectAllEnabledDomains(): array
   {
-    return $this->repository->selectAllEnabledDomains();
+    return $this->getRepository()?->selectAllEnabledDomains() ?? array();
   }
 
 }

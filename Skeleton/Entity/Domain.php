@@ -17,11 +17,10 @@ use Doctrine\ORM\Mapping as ORM;
  * Austral Domain Entity.
  *
  * @author Matthieu Beurel <matthieu@austral.dev>
- *
- * @ORM\Table(name="austral_http_domain")
- * @ORM\Entity(repositoryClass="Austral\HttpBundle\Repository\DomainRepository")
- * @ORM\HasLifecycleCallbacks
  */
+#[ORM\Table(name: "austral_http_domain")]
+#[ORM\Entity(repositoryClass: \Austral\HttpBundle\Repository\DomainRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 class Domain extends BaseDomain
 {
   public function __construct()

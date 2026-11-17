@@ -17,113 +17,69 @@ use Austral\HttpBundle\Services\DomainsManagement;
 use Austral\ToolsBundle\Configuration\ConfigurationInterface;
 use Austral\ToolsBundle\Services\Debug;
 use Doctrine\ORM\Query\QueryException;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Twig\Environment;
 
 /**
  * Austral Http EventSubscriber.
+ * @template T of object
+ * @implements HttpEventSubscriberInterface<T>
+ *
  * @author Matthieu Beurel <matthieu@austral.dev>
  */
 abstract class HttpEventSubscriber implements EventSubscriberInterface, HttpEventSubscriberInterface
 {
 
   /**
-   * @var ContainerInterface
-   */
-  protected ContainerInterface $container;
-
-  /**
-   * @var ConfigurationInterface
-   */
-  protected ConfigurationInterface $configuration;
-
-  /**
-   * @var DomainsManagement
-   */
-  protected DomainsManagement $domainsManagement;
-
-  /**
-   * @var Debug
-   */
-  protected Debug $debug;
-
-
-  /**
-   * @var Environment|null
-   */
-  protected ?Environment $twig = null;
-
-  /**
    * HttpSubscriber constructor.
    *
    * @param ContainerInterface $container
    * @param ConfigurationInterface $configuration
-   * @param DomainsManagement $domainsManagement
+   * @param DomainsManagement<T> $domainsManagement
    * @param Debug $debug
    *
    * @throws QueryException
    */
-  public function __construct(ContainerInterface $container, ConfigurationInterface $configuration, DomainsManagement $domainsManagement, Debug $debug)
+  public function __construct(
+    #[Autowire(service: "service_container")] protected ContainerInterface $container,
+    #[Autowire(service: "austral.http.config")] protected ConfigurationInterface $configuration,
+    #[Autowire(service: "austral.http.domains.management")] protected DomainsManagement $domainsManagement,
+    #[Autowire(service: "austral.tools.debug")] protected Debug $debug)
   {
-    $this->container = $container;
-    $this->configuration = $configuration;
-    $this->debug = $debug;
-    $this->domainsManagement = $domainsManagement->initialize();
+    $this->domainsManagement->initialize();
   }
 
   /**
-   * setTwig
-   *
-   * @param Environment $twig
-   * @return void
-   */
-  public function setTwig(Environment $twig): void
-  {
-    $this->twig = $twig;
-  }
-
-  /**
-   * @return array
+   * @inheritDoc
    */
   abstract public static function getSubscribedEvents(): array;
 
+  /**
+   * @inheritDoc
+   */
+  abstract public function onRequestInitialise(HttpEventInterface $httpEvent): void;
 
   /**
-   * @param HttpEventInterface $httpEvent
-   *
-   * @return mixed
+   * @inheritDoc
    */
-  abstract public function onRequestInitialise(HttpEventInterface $httpEvent);
-
+  abstract public function onRequest(HttpEventInterface $httpEvent): void;
 
   /**
-   * @param HttpEventInterface $httpEvent
-   *
-   * @return mixed
+   * @inheritDoc
    */
-  abstract public function onRequest(HttpEventInterface $httpEvent);
+  abstract public function onController(HttpEventInterface $httpEvent): void;
 
   /**
-   * @param HttpEventInterface $httpEvent
-   *
-   * @return mixed
+   * @inheritDoc
    */
-  abstract public function onController(HttpEventInterface $httpEvent);
+  abstract public function onResponse(HttpEventInterface $httpEvent): void;
 
   /**
-   * @param HttpEventInterface $httpEvent
-   *
-   * @return mixed
+   * @inheritDoc
    */
-  abstract public function onResponse(HttpEventInterface $httpEvent);
-
-  /**
-   * @param HttpEventInterface $httpEvent
-   *
-   * @return void
-   */
-  abstract public function onException(HttpEventInterface $httpEvent);
+  abstract public function onException(HttpEventInterface $httpEvent): void;
 
 
 }

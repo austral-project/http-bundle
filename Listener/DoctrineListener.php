@@ -10,148 +10,111 @@
 
 namespace Austral\HttpBundle\Listener;
 
-use Austral\EntityBundle\Entity\EntityInterface;
+use Austral\Contracts\Entity\EntityInterface;
 use Austral\HttpBundle\Services\DomainsManagement;
-use Doctrine\Bundle\DoctrineBundle\Attribute\AsDoctrineListener;
-use Doctrine\Common\EventArgs;
-use Doctrine\Common\EventSubscriber;
-use Doctrine\ORM\Event\LifecycleEventArgs;
+use Doctrine\ORM\Events;
+use Doctrine\Persistence\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\PostFlushEventArgs;
-use Doctrine\ORM\EntityManager;
+use Doctrine\Persistence\ObjectManager;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 /**
  * Austral Doctrine Listener.
+ * @template TObjectManager of ObjectManager
+ * @template T of object
+ *
  * @author Matthieu Beurel <matthieu@austral.dev>
  * @final
  */
-#[AsDoctrineListener(event: 'postLoad', connection: 'default')]
-#[AsDoctrineListener(event: 'prePersist', connection: 'default')]
-#[AsDoctrineListener(event: 'preUpdate', connection: 'default')]
-#[AsDoctrineListener(event: 'postRemove', connection: 'default')]
-#[AsDoctrineListener(event: 'postFlush', connection: 'default')]
-class DoctrineListener implements EventSubscriber
+class DoctrineListener
 {
-
-  /**
-   * @var mixed
-   */
-  protected $name;
-
-  /**
-   * @var EntityManager
-   */
-  protected EntityManager $entityManager;
 
   /**
    * @var bool
    */
   protected bool $postFlush = false;
 
-  /**
-   * @var DomainsManagement
-   */
-  protected DomainsManagement $domainAttachement;
 
   /**
-   * DoctrineListener constructor.
+   * DoctrineListener constructor
+   *
+   * @param DomainsManagement<T> $domainAttachement
    */
-  public function __construct(DomainsManagement $domainAttachement)
+  public function __construct(
+    #[Autowire(service: "austral.http.domains.management")] protected DomainsManagement $domainAttachement)
   {
-    $parts = explode('\\', $this->getNamespace());
-    $this->name = end($parts);
-    $this->domainAttachement = $domainAttachement;
   }
 
   /**
-   * @return array
+   * @return string[]
    */
-  public function getSubscribedEvents()
+  public function getSubscribedEvents(): array
   {
     return array(
-      'postLoad',
-      'prePersist',
-      'preUpdate',
-      'postRemove',
-      "postFlush"
+      Events::postLoad,
+      Events::prePersist,
+      Events::preUpdate,
+      Events::postRemove,
+      Events::postFlush,
     );
   }
 
   /**
-   * @param EventArgs $args
+   * @param LifecycleEventArgs<TObjectManager> $args
    */
-  public function postLoad(EventArgs $args)
+  public function postLoad(LifecycleEventArgs $args): void
   {
   }
 
   /**
-   * @param LifecycleEventArgs $args
+   * @param LifecycleEventArgs<TObjectManager> $args
    */
-  public function prePersist(LifecycleEventArgs $args)
+  public function prePersist(LifecycleEventArgs $args): void
   {
-    if(($object = $args->getObject()) && $object instanceof EntityInterface)
+    $object = $args->getObject();
+    if($object instanceof EntityInterface)
     {
-      $this->domainAttachement->objectDomainAttachement($object, true);
+      $this->domainAttachement->objectDomainAttachement($object);
     }
   }
 
   /**
-   * @param LifecycleEventArgs $args
+   * @param LifecycleEventArgs<TObjectManager> $args
    */
-  public function preUpdate(LifecycleEventArgs $args)
+  public function preUpdate(LifecycleEventArgs $args): void
   {
     if(!$this->postFlush)
     {
-      if(($object = $args->getObject()) && $object instanceof EntityInterface)
+      $object = $args->getObject();
+      if($object instanceof EntityInterface)
       {
-        $this->domainAttachement->objectDomainAttachement($object, true);
+        $this->domainAttachement->objectDomainAttachement($object);
       }
     }
   }
 
   /**
-   * @param LifecycleEventArgs $args
+   * @param LifecycleEventArgs<TObjectManager> $args
    *
    */
-  public function postRemove(LifecycleEventArgs $args)
+  public function postRemove(LifecycleEventArgs $args): void
   {
   }
 
   /**
-   * @param PostFlushEventArgs $args
+   * @param ObjectManager $args
    *
    */
-  public function postFlush(PostFlushEventArgs $args)
+  public function postFlush(ObjectManager $args): void
   {
     if(!$this->postFlush)
     {
       $this->postFlush = true;
-      $entityManager = $args->getObjectManager();
       foreach($this->domainAttachement->getObjectsDomainAttachement() as $object) {
-        $entityManager->persist($object);
+        $args->persist($object);
       }
-      $entityManager->flush();
+      $args->flush();
     }
-  }
-
-  /**
-   * Get an event adapter to handle event specific
-   * methods
-   *
-   * @param EventArgs $args
-   *
-   * @return EventArgs
-   */
-  protected function getEventAdapter(EventArgs $args): EventArgs
-  {
-    return $args;
-  }
-
-  /**
-   * @return string
-   */
-  protected function getNamespace(): string
-  {
-    return __NAMESPACE__;
   }
 
 }

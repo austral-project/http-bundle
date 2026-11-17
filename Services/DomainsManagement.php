@@ -10,8 +10,9 @@
 
 namespace Austral\HttpBundle\Services;
 
-use Austral\EntityBundle\Entity\EntityInterface;
-use Austral\EntityBundle\Entity\Interfaces\TranslateChildInterface;
+use Austral\Contracts\Entity\EntityInterface;
+use Austral\Contracts\Domain\FilterByDomainInterface;
+use Austral\Contracts\Translate\TranslateChildInterface;
 use Austral\EntityBundle\Mapping\Mapping;
 use Austral\HttpBundle\Entity\Interfaces\DomainInterface;
 use Austral\HttpBundle\EntityManager\DomainEntityManager;
@@ -19,81 +20,64 @@ use Austral\HttpBundle\Mapping\DomainFilterMapping;
 use Austral\ToolsBundle\AustralTools;
 use Austral\ToolsBundle\Services\Debug;
 use Doctrine\ORM\Query\QueryException;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Routing\RequestContext;
 
 /**
  * Austral Domain Service.
+ * @template T of object
+ *
  * @author Matthieu Beurel <matthieu@austral.dev>
  */
 Class DomainsManagement
 {
 
-  const DOMAIN_ID_FOR_ALL_DOMAINS = "for-all-domains";
-  const DOMAIN_ID_MASTER = "master";
-  const DOMAIN_ID_CURRENT = "current";
+  const string DOMAIN_ID_FOR_ALL_DOMAINS = "for-all-domains";
+  const string DOMAIN_ID_MASTER = FilterByDomainInterface::DOMAIN_ID_MASTER;
+  const string DOMAIN_ID_CURRENT = "current";
 
   /**
-   * @var DomainEntityManager
-   */
-  protected DomainEntityManager $domainEntityManager;
-
-  /**
-   * @var HttpRequest
-   */
-  protected HttpRequest $httpRequest;
-
-  /**
-   * @var Mapping
-   */
-  protected Mapping $mapping;
-
-  /**
-   * @var Debug
-   */
-  protected Debug $debug;
-
-  /**
-   * @var array
+   * @var array<string, DomainInterface<T>>
    */
   protected array $domains = array();
 
   /**
-   * @var array
+   * @var array<string, DomainInterface<T>>
    */
   protected array $domainsWithoutVirtual = array();
 
   /**
-   * @var array
+   * @var array<string, DomainInterface<T>>
    */
   protected array $domainsMaster = array();
 
   /**
-   * @var array
+   * @var array<string, DomainInterface<T>>
    */
   protected array $domainsById = array();
 
   /**
-   * @var array
+   * @var array<string, string>
    */
   protected array $domainsIdByKeyname = array();
 
   /**
-   * @var array
+   * @var array<string, RequestContext>
    */
   protected array $requestContextByDomainId = array();
 
   /**
-   * @var DomainInterface|null
+   * @var DomainInterface<T>|null
    */
   protected ?DomainInterface $currentDomain = null;
 
   /**
-   * @var DomainInterface|null
+   * @var DomainInterface<T>|null
    */
   protected ?DomainInterface $currentDomainWithVirtual = null;
 
   /**
-   * @var DomainInterface|null
+   * @var DomainInterface<T>|null
    */
   protected ?DomainInterface $domainMaster = null;
 
@@ -110,17 +94,17 @@ Class DomainsManagement
   /**
    * Domains Service constructor.
    *
-   * @param Mapping $mapping
-   * @param DomainEntityManager $domainEntityManager
-   * @param HttpRequest $httpRequest
+   * @param Mapping<T> $mapping
+   * @param DomainEntityManager<T> $domainEntityManager
+   * @param HttpRequest<T> $httpRequest
    * @param Debug $debug
    */
-  public function __construct(Mapping $mapping, DomainEntityManager $domainEntityManager, HttpRequest $httpRequest, Debug $debug)
+  public function __construct(
+    #[Autowire(service: "austral.entity.mapping")] protected Mapping $mapping,
+    #[Autowire(service: "austral.entity_manager.domain")] protected DomainEntityManager $domainEntityManager,
+    #[Autowire(service: "austral.http.request")] protected HttpRequest $httpRequest,
+    #[Autowire(service: "austral.tools.debug")] protected Debug $debug)
   {
-    $this->mapping = $mapping;
-    $this->domainEntityManager = $domainEntityManager;
-    $this->httpRequest = $httpRequest;
-    $this->debug = $debug;
     $this->createVirtualDomain(self::DOMAIN_ID_FOR_ALL_DOMAINS);
   }
 
@@ -129,12 +113,12 @@ Class DomainsManagement
    */
   public function getHost(): ?string
   {
-    return $this->httpRequest->getRequest() ? $this->httpRequest->getRequest()->getHost() : null;
+    return $this->httpRequest->getRequest()?->getHost();
   }
 
   /**
    * getHttpRequest
-   * @return HttpRequest
+   * @return HttpRequest<T>
    */
   public function getHttpRequest(): HttpRequest
   {
@@ -142,17 +126,18 @@ Class DomainsManagement
   }
 
   /**
+   * @param bool $detectAutoHost
    * @return $this
    * @throws QueryException
    */
-  public function initialize(bool $detectAutoHost = true): DomainsManagement
+  public function initialize(bool $detectAutoHost = true): self
   {
     $this->debug->stopWatchStart("austral.domain_management.initialize", "austral.http.domain_management");
     if(!$this->domains)
     {
       $this->domains = $this->domainEntityManager->selectAllEnabledDomains();
 
-      /** @var DomainInterface $domain */
+      /** @var DomainInterface<T> $domain */
       foreach($this->domains as $domain)
       {
         $domain->setRequestLanguage($this->httpRequest->getLanguage());
@@ -196,15 +181,18 @@ Class DomainsManagement
         }
       }
 
-      $this->domainsById[$this->getDomainForAll()->getId()] = $this->getDomainForAll();
-      if(!$this->domainMaster)
+      if($this->getDomainForAll())
       {
-        $domainMaster = $this->createVirtualDomain(self::DOMAIN_ID_MASTER);
-        $domainMaster->setIsMaster(true);
-        $this->domainMaster = $domainMaster;
-        $this->currentDomain = $domainMaster;
-        $this->setFilterDomainId($domainMaster->getId());
-        $this->domainsWithoutVirtual[$domainMaster->getId()] = $domainMaster;
+        $this->domainsById[$this->getDomainForAll()->getId()] = $this->getDomainForAll();
+        if(!$this->domainMaster)
+        {
+          $domainMaster = $this->createVirtualDomain(self::DOMAIN_ID_MASTER);
+          $domainMaster->setIsMaster(true);
+          $this->domainMaster = $domainMaster;
+          $this->currentDomain = $domainMaster;
+          $this->setFilterDomainId($domainMaster->getId());
+          $this->domainsWithoutVirtual[$domainMaster->getId()] = $domainMaster;
+        }
       }
     }
     $this->debug->stopWatchStop("austral.domain_management.initialize");
@@ -214,7 +202,7 @@ Class DomainsManagement
   /**
    * @param string $keyname
    *
-   * @return DomainInterface
+   * @return DomainInterface<T>
    */
   protected function createVirtualDomain(string $keyname): DomainInterface
   {
@@ -223,7 +211,7 @@ Class DomainsManagement
     $domain->setId($keyname);
     $domain->setName($keyname);
     $domain->setKeyname($keyname);
-    $domain->setDomain($this->getHost());
+    $domain->setDomain($this->getHost() ?? "");
     $domain->setIsVirtual(true);
     $domain->setRequestLanguage($this->httpRequest->getLanguage());
     $this->domainsById[$keyname] = $domain;
@@ -240,7 +228,7 @@ Class DomainsManagement
   }
 
   /**
-   * @return array
+   * @return array<string, DomainInterface<T>>
    */
   public function getDomainsWithoutVirtual(): array
   {
@@ -248,7 +236,7 @@ Class DomainsManagement
   }
 
   /**
-   * @return array
+   * @return array<string, DomainInterface<T>>
    */
   public function getDomains(): array
   {
@@ -256,7 +244,7 @@ Class DomainsManagement
   }
 
   /**
-   * @return DomainInterface|null
+   * @return DomainInterface<T>|null
    */
   public function getDomainMaster(): ?DomainInterface
   {
@@ -266,7 +254,7 @@ Class DomainsManagement
   /**
    * @param bool $withoutVirtual
    *
-   * @return DomainInterface|null
+   * @return DomainInterface<T>|null
    */
   public function getCurrentDomain(bool $withoutVirtual = true): ?DomainInterface
   {
@@ -274,11 +262,11 @@ Class DomainsManagement
   }
 
   /**
-   * @param DomainInterface $currentDomain
+   * @param DomainInterface<T> $currentDomain
    *
    * @return $this
    */
-  public function setCurrentDomain(DomainInterface $currentDomain): DomainsManagement
+  public function setCurrentDomain(DomainInterface $currentDomain): self
   {
     $this->currentDomain = $currentDomain;
     return $this;
@@ -300,19 +288,19 @@ Class DomainsManagement
    */
   public function getReelDomainId(?string $domainId = DomainsManagement::DOMAIN_ID_MASTER, bool $withoutVirtual = true): ?string
   {
+    $domainId = $domainId === "current" ? $this->getCurrentDomain($withoutVirtual)?->getId() : null;
     $domainId = $domainId ?? DomainsManagement::DOMAIN_ID_MASTER;
-    $domainId = $domainId === "current" ? $this->getCurrentDomain($withoutVirtual)->getId() : $domainId;
     return array_key_exists($domainId, $this->domainsIdByKeyname) ? $this->domainsIdByKeyname[$domainId] : $domainId;
   }
 
   /**
    * @param string|null $id
    *
-   * @return ?DomainInterface
+   * @return ?DomainInterface<T>
    */
   public function getDomainById(?string $id = null): ?DomainInterface
   {
-    $id = array_key_exists($id, $this->domainsIdByKeyname) ? $this->domainsIdByKeyname[$id] : $id;
+    $id = $id && array_key_exists($id, $this->domainsIdByKeyname) ? $this->domainsIdByKeyname[$id] : $id;
     if($id)
     {
       return array_key_exists($id, $this->domainsById) ? $this->domainsById[$id] : null;
@@ -323,7 +311,7 @@ Class DomainsManagement
   /**
    * @param string|null $keyname
    *
-   * @return ?DomainInterface
+   * @return ?DomainInterface<T>
    */
   public function getDomainByKeyname(?string $keyname = null): ?DomainInterface
   {
@@ -337,11 +325,11 @@ Class DomainsManagement
    */
   public function getDomainIdByKeyname(?string $keyname = null): ?string
   {
-    return array_key_exists($keyname, $this->domainsIdByKeyname) ? $this->domainsIdByKeyname[$keyname] : null;
+    return $keyname && array_key_exists($keyname, $this->domainsIdByKeyname) ? $this->domainsIdByKeyname[$keyname] : null;
   }
 
   /**
-   * @return DomainInterface|null
+   * @return DomainInterface<T>|null
    */
   public function getDomainForAll(): ?DomainInterface
   {
@@ -359,16 +347,16 @@ Class DomainsManagement
   /**
    * @param string|null $filterDomainId
    *
-   * @return DomainsManagement
+   * @return $this
    */
-  public function setFilterDomainId(?string $filterDomainId): DomainsManagement
+  public function setFilterDomainId(?string $filterDomainId): self
   {
     $this->filterDomainId = $filterDomainId;
     return $this;
   }
 
   /**
-   * @return ?DomainInterface
+   * @return ?DomainInterface<T>
    */
   public function getFilterDomain(): ?DomainInterface
   {
@@ -376,12 +364,12 @@ Class DomainsManagement
   }
 
   /**
-   * @var array
+   * @var array<int, FilterByDomainInterface<T>>
    */
   protected array $objectsDomainAttachement = array();
 
   /**
-   * @return array
+   * @return array<int, FilterByDomainInterface<T>>
    */
   public function getObjectsDomainAttachement(): array
   {
@@ -396,74 +384,79 @@ Class DomainsManagement
    */
   public function getRequestContextByDomainId(string $domainId, bool $withoutVirtual = true): ?RequestContext
   {
-    return AustralTools::getValueByKey($this->requestContextByDomainId, $this->getReelDomainId($domainId, $withoutVirtual));
+    return AustralTools::valueByKey($this->requestContextByDomainId, $this->getReelDomainId($domainId, $withoutVirtual) ?? "");
   }
 
   /**
-   * @param $object
+   * @param EntityInterface<T> $object
    * @param string|null $domainId
    *
-   * @return false
+   * @return boolean
    */
-  public function objectAttachementByDomainId($object, string $domainId = null): bool
+  public function objectAttachementByDomainId(EntityInterface $object, ?string $domainId = null): bool
   {
-    /** @var DomainFilterMapping $domainFilterMapping */
-    if($domainFilterMapping = $this->mapping->getEntityClassMapping($object->getClassnameForMapping(), DomainFilterMapping::class))
+    if($object instanceof FilterByDomainInterface)
     {
-      if($domainFilterMapping->getAutoDomainId())
+      /** @var DomainFilterMapping<T>|null $domainFilterMapping */
+      $domainFilterMapping = $this->mapping->getEntityClassMapping($object->getClassnameForMapping(), DomainFilterMapping::class);
+      if($domainFilterMapping)
       {
-        return $object->getDomainId() === $this->getReelDomainId($domainId);
+        if($domainFilterMapping->getAutoDomainId())
+        {
+          return $object->getDomainId() === $this->getReelDomainId($domainId);
+        }
       }
     }
     return false;
   }
 
   /**
-   * @param EntityInterface $object
+   * @param EntityInterface<T> $object
    * @param bool $withChild
    *
    * @return $this
    */
-  public function objectDomainAttachement(EntityInterface $object, bool $withChild = true): DomainsManagement
+  public function objectDomainAttachement(EntityInterface $object, bool $withChild = true): self
   {
     if($object instanceof TranslateChildInterface)
     {
       $object = $object->getMaster();
     }
 
-    /** @var DomainFilterMapping $domainFilterMapping */
-    if($domainFilterMapping = $this->mapping->getEntityClassMapping($object->getClassnameForMapping(), DomainFilterMapping::class))
+    if($object instanceof FilterByDomainInterface)
     {
-      if($domainFilterMapping->getAutoDomainId() && $domainFilterMapping->getAutoAttachement() && $this->getFilterDomainId())
+      /** @var DomainFilterMapping<T>|null $domainFilterMapping */
+      $domainFilterMapping = $this->mapping->getEntityClassMapping($object->getClassnameForMapping(), DomainFilterMapping::class);
+      if($domainFilterMapping)
       {
-        if(!$object->getDomainId())
+        if($domainFilterMapping->getAutoDomainId() && $domainFilterMapping->getAutoAttachement() && $this->getFilterDomainId())
         {
-          $object->setDomainId($this->getFilterDomainId());
-        }
-      }
-      if($withChild)
-      {
-        if(method_exists($object, "getChildren"))
-        {
-          foreach($object->getChildren() as $child)
+          if(!$object->getDomainId())
           {
-            $this->objectDomainAttachement($child);
+            $object->setDomainId($this->getFilterDomainId());
           }
         }
-        if(method_exists($object, "getChildrenEntities"))
+        if($withChild)
         {
-          foreach($object->getChildrenEntities() as $child)
+          if(method_exists($object, "getChildren"))
           {
-            $this->objectDomainAttachement($child);
+            foreach($object->getChildren() as $child)
+            {
+              $this->objectDomainAttachement($child);
+            }
+          }
+          if(method_exists($object, "getChildrenEntities"))
+          {
+            foreach($object->getChildrenEntities() as $child)
+            {
+              $this->objectDomainAttachement($child);
+            }
           }
         }
+        $this->objectsDomainAttachement[] = $object;
       }
-      $this->objectsDomainAttachement[] = $object;
     }
     return $this;
   }
-
-
-
 
 }

@@ -26,45 +26,36 @@ class Configuration implements ConfigurationInterface
    */
   public function getConfigTreeBuilder(): TreeBuilder
   {
-
     $treeBuilder = new TreeBuilder('austral_http');
-
     $rootNode = $treeBuilder->getRootNode();
-    $node = $rootNode->children();
-    $node->scalarNode("protocol")->end();
-    $node->scalarNode("default_language")->end();
-    $node->arrayNode("languages")
-      ->scalarPrototype()->end()
-    ->end();
+    $children = $rootNode->children();
 
-    $node->arrayNode("env")
-      ->children()
-        ->scalarNode("current")->end()
-        ->arrayNode("list")
-          ->scalarPrototype()->end()
-        ->end()
-      ->end();
-    $node->arrayNode("compression_gzip")
-        ->children()
-          ->booleanNode("admin")->end()
-          ->booleanNode("website")->end()
-          ->booleanNode("other")->end()
-        ->end()
-      ->end();
+    $children->scalarNode("protocol")->end();
+    $children->scalarNode("default_language")->end();
+    $children->arrayNode("languages")->scalarPrototype()->end();
+
+    $envChildren = $children->arrayNode("env")->children();
+    $envChildren->scalarNode("current")->end();
+    $envChildren->arrayNode("list")->scalarPrototype()->end();
+
+    $compressionGZIP = $children->arrayNode("compression_gzip")->children();
+    $compressionGZIP->booleanNode("admin")->end();
+    $compressionGZIP->booleanNode("website")->end();
+    $compressionGZIP->booleanNode("other")->end();
+
     return $treeBuilder;
   }
 
 
   /**
-   * @return array
+   * @return array<string, mixed>
    */
   public function getConfigDefault(): array
   {
     return array(
       "protocol"            =>  "https",
       "default_language"    =>  "en",
-      "languages"           =>  array(
-      ),
+      "languages"           =>  array(),
       "env"                 =>  array(
         "current"   =>  "prod",
         "list"      =>  array(

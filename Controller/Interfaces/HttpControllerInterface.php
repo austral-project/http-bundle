@@ -10,35 +10,46 @@
  
 namespace Austral\HttpBundle\Controller\Interfaces;
 
-use Austral\HttpBundle\Controller\HttpController;
 use Austral\HttpBundle\Handler\Interfaces\HttpHandlerInterface;
 use Austral\HttpBundle\Template\Interfaces\HttpTemplateParametersInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 /**
  * Austral Http Controller Interface.
+ * @template T of object
+ *
  * @author Matthieu Beurel <matthieu@austral.dev>
  */
 interface HttpControllerInterface
 {
 
   /**
-   * @param ContainerInterface|null $container
+   * @param ContainerInterface $container
+   *
+   * @return $this
    */
-  public function setContainer(ContainerInterface $container = null);
+  public function setContainer(ContainerInterface $container): self;
 
   /**
-   * @param HttpHandlerInterface $handlerManager
+   * @param TokenStorageInterface|null $tokenStorage
    *
-   * @return HttpControllerInterface
+   * @return $this
    */
-  public function setHandlerManager(HttpHandlerInterface  $handlerManager): HttpControllerInterface;
+  public function setTokenStorage(?TokenStorageInterface $tokenStorage = null): self;
 
   /**
-   * @param HttpTemplateParametersInterface $templateParameters
+   * @param HttpHandlerInterface<T> $handlerManager
    *
-   * @return HttpControllerInterface
+   * @return $this
    */
-  public function setTemplateParameters(HttpTemplateParametersInterface $templateParameters): HttpControllerInterface;
+  public function setHandlerManager(HttpHandlerInterface  $handlerManager): self;
+
+  /**
+   * @param HttpTemplateParametersInterface<T>|null $templateParameters
+   *
+   * @return $this
+   */
+  public function setTemplateParameters(?HttpTemplateParametersInterface $templateParameters = null): self;
 
 }

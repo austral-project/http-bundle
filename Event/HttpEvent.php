@@ -14,39 +14,34 @@ use Austral\HttpBundle\Event\Interfaces\HttpEventInterface;
 use Austral\HttpBundle\Handler\Interfaces\HttpHandlerInterface;
 use Austral\HttpBundle\Services\HttpRequest;
 use Symfony\Component\HttpKernel\Event\KernelEvent;
-use Symfony\Component\HttpKernel\Event\RequestEvent;
-use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Contracts\EventDispatcher\Event;
 
 /**
  * Austral Http Event.
+ * @template T of object
+ *
+ * @implements HttpEventInterface<T>
+ *
  * @author Matthieu Beurel <matthieu@austral.dev>
  * @abstract
  */
 abstract class HttpEvent extends Event implements HttpEventInterface
 {
 
-  const EVENT_AUSTRAL_HTTP_REQUEST_INITIALISE = "austral.event.http.request.initialise";
-  const EVENT_AUSTRAL_HTTP_REQUEST = "austral.event.http.request";
-  const EVENT_AUSTRAL_HTTP_CONTROLLER = "austral.event.http.controller";
-  const EVENT_AUSTRAL_HTTP_RESPONSE = "austral.event.http.response";
-  const EVENT_AUSTRAL_HTTP_EXCEPTION = "austral.event.http.exception";
-  const EVENT_AUSTRAL_HTTP_REQUEST_FINISH = "austral.event.http.request.finish";
-
   /**
-   * @var HttpHandlerInterface|null
+   * @var HttpHandlerInterface<T>|null
    */
   private ?HttpHandlerInterface $handler = null;
 
   /**
-   * @var HttpRequest
+   * @var HttpRequest<T>|null
    */
-  private HttpRequest $httpRequest;
+  private ?HttpRequest $httpRequest = null;
 
   /**
-   * @var RequestEvent|ResponseEvent|null
+   * @var KernelEvent|null
    */
-  private $kernelEvent;
+  private ?KernelEvent $kernelEvent = null;
 
   /**
    * FormEvent constructor.
@@ -57,7 +52,7 @@ abstract class HttpEvent extends Event implements HttpEventInterface
   }
 
   /**
-   * @return HttpHandlerInterface|null
+   * @return HttpHandlerInterface<T>|null
    */
   public function getHandler(): ?HttpHandlerInterface
   {
@@ -65,39 +60,39 @@ abstract class HttpEvent extends Event implements HttpEventInterface
   }
 
   /**
-   * @param HttpHandlerInterface $handler
+   * @param HttpHandlerInterface<T> $handler
    *
    * @return $this
    */
-  public function setHandler(HttpHandlerInterface $handler): HttpEvent
+  public function setHandler(HttpHandlerInterface $handler): self
   {
     $this->handler = $handler;
     return $this;
   }
 
   /**
-   * @return HttpRequest
+   * @return HttpRequest<T>|null
    */
-  public function getHttpRequest(): HttpRequest
+  public function getHttpRequest(): ?HttpRequest
   {
     return $this->httpRequest;
   }
 
   /**
-   * @param HttpRequest $httpRequest
+   * @param HttpRequest<T> $httpRequest
    *
    * @return $this
    */
-  public function setHttpRequest(HttpRequest $httpRequest): HttpEvent
+  public function setHttpRequest(HttpRequest $httpRequest): self
   {
     $this->httpRequest = $httpRequest;
     return $this;
   }
 
   /**
-   * @return RequestEvent|ResponseEvent|null
+   * @return KernelEvent|null
    */
-  public function getKernelEvent()
+  public function getKernelEvent(): ?KernelEvent
   {
     return $this->kernelEvent;
   }
@@ -105,9 +100,9 @@ abstract class HttpEvent extends Event implements HttpEventInterface
   /**
    * @param KernelEvent $kernelEvent
    *
-   * @return HttpEvent
+   * @return $this
    */
-  public function setKernelEvent(KernelEvent $kernelEvent): HttpEvent
+  public function setKernelEvent(KernelEvent $kernelEvent): self
   {
     $this->kernelEvent = $kernelEvent;
     return $this;

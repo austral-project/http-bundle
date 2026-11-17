@@ -10,14 +10,15 @@
  
 namespace Austral\HttpBundle\Entity;
 
-use Austral\EntityBundle\Entity\Interfaces\FileInterface;
+use Austral\EntityFileBundle\Entity\Interfaces\CropperInterface;
+use Austral\Contracts\File\FileInterface;
 use Austral\EntityFileBundle\Entity\Traits\EntityFileCropperTrait;
 use Austral\EntityFileBundle\Entity\Traits\EntityFileTrait;
+use Austral\EntityFileBundle\Attribute as AustralFile;
+
 use Austral\HttpBundle\Entity\Interfaces\DomainInterface;
-use Austral\EntityFileBundle\Annotation as AustralFile;
 
 use Austral\EntityBundle\Entity\Entity;
-use Austral\EntityBundle\Entity\EntityInterface;
 use Austral\EntityBundle\Entity\Traits\EntityTimestampableTrait;
 use Austral\ToolsBundle\AustralTools;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -30,217 +31,238 @@ use Exception;
 
 /**
  * Austral Domain Entity.
+ * @template T of object
+ *
+ * @extends Entity<T>
+ * @implements DomainInterface<T>
+ * @implements FileInterface<T>
+ * @implements CropperInterface<T>
+ * @use EntityFileTrait<T>
+ * @use EntityFileCropperTrait<T>
+ *
  * @author Matthieu Beurel <matthieu@austral.dev>
  * @abstract
- * @ORM\MappedSuperclass
  */
-abstract class Domain extends Entity implements DomainInterface, EntityInterface, FileInterface
+#[ORM\MappedSuperclass]
+abstract class Domain extends Entity implements DomainInterface, FileInterface, CropperInterface
 {
 
+  /** @use EntityFileTrait<T> */
   use EntityFileTrait;
+
+  /** @use EntityFileCropperTrait<T> */
   use EntityFileCropperTrait;
+
   use EntityTimestampableTrait;
 
   /**
    * @var string
-   * @ORM\Column(name="id", type="string", length=40)
-   * @ORM\Id
    */
-  protected $id;
-  
+  #[Orm\Column(name: 'id', type: 'string', length: 40)]
+  #[ORM\Id()]
+  protected string $id;
+
   /**
-   * @var DomainInterface|null
-   * @ORM\ManyToOne(targetEntity="Austral\HttpBundle\Entity\Interfaces\DomainInterface", inversedBy="virtuals")
-   * @ORM\JoinColumn(name="master", referencedColumnName="id", onDelete="SET NULL")
+   * @var DomainInterface<T>|null
    */
+  #[ORM\ManyToOne(
+    targetEntity: \Austral\HttpBundle\Entity\Interfaces\DomainInterface::class,
+    inversedBy: 'virtuals'
+  )]
+  #[ORM\JoinColumn(name: 'master', referencedColumnName: 'id', onDelete: 'SET NULL')]
   protected ?DomainInterface $master = null;
 
   /**
-   * @ORM\OneToMany(targetEntity="Austral\HttpBundle\Entity\Interfaces\DomainInterface", mappedBy="master", cascade={"persist", "remove"})
+   * @var Collection<int, DomainInterface<T>>
    */
+  #[ORM\OneToMany(
+    targetEntity: \Austral\HttpBundle\Entity\Interfaces\DomainInterface::class,
+    mappedBy: 'master',
+    cascade: ['persist', 'remove'],
+  )]
   protected Collection $virtuals;
 
   /**
-   * @var string|null
-   * @ORM\Column(name="domain", type="string", length=255, nullable=false )
+   * @var string
    */
-  protected ?string $domain = null;
+  #[ORM\Column(name: 'domain', type: 'string', length: 255, nullable: false)]
+  protected string $domain = "";
+
+  /**
+   * @var string
+   */
+  #[ORM\Column(name: 'name', type: 'string', length: 255, nullable: false)]
+  protected string $name = "";
 
   /**
    * @var string|null
-   * @ORM\Column(name="name", type="string", length=255, nullable=false)
    */
-  protected ?string $name = null;
-
-  /**
-   * @var string|null
-   * @ORM\Column(name="keyname", type="string", length=255, nullable=false)
-   */
+  #[ORM\Column(name: 'keyname', type: 'string', length: 255, nullable: false)]
   protected ?string $keyname = null;
 
   /**
-   * @var string|null
-   * @ORM\Column(name="domain_env", type="string", length=255, nullable=false, options={"default": "prod"})
+   * @var string
    */
+  #[ORM\Column(name: 'domain_env', type: 'string', length: 255, nullable: false, options: ["default" => "prod"])]
   protected string $domainEnv = "prod";
 
   /**
    * @var string|null
-   * @ORM\Column(name="favicon", type="string", length=255, nullable=true )
-   * @AustralFile\UploadParameters(configName="page_image")
-   * @AustralFile\ImageSize()
-   * @AustralFile\Croppers(croppers={
-   *   @AustralFile\Cropper(name="favicon", ratio="1/1", picto="austral-picto-globe" )
-   * })
    */
+  #[ORM\Column(name: 'favicon', type: 'string', length: 255, nullable: true)]
+  #[AustralFile\UploadParameters(configName: "page_image")]
+  #[AustralFile\ImageSize()]
+  #[AustralFile\Croppers(croppers: [
+    new AustralFile\Cropper(name: "favicon", picto: "austral-picto-globe", ratio: "1/1")
+  ])]
   protected ?string $favicon = null;
 
   /**
    * @var string|null
-   * @ORM\Column(name="favicon_second", type="string", length=255, nullable=true )
-   * @AustralFile\UploadParameters(configName="page_image")
-   * @AustralFile\ImageSize()
-   * @AustralFile\Croppers(croppers={
-   *   @AustralFile\Cropper(name="favicon", ratio="1/1", picto="austral-picto-globe" )
-   * })
    */
+  #[ORM\Column(name: 'favicon_second', type: 'string', length: 255, nullable: true)]
+  #[AustralFile\UploadParameters(configName: "page_image")]
+  #[AustralFile\ImageSize()]
+  #[AustralFile\Croppers(croppers: [
+    new AustralFile\Cropper(name: "favicon", picto: "austral-picto-globe", ratio: "1/1")
+  ])]
   protected ?string $faviconSecond = null;
 
   /**
    * @var string|null
-   * @ORM\Column(name="logo", type="string", length=255, nullable=true)
-   * @AustralFile\UploadParameters(configName="page_image")
-   * @AustralFile\ImageSize(widthMin="0", heightMin="0")
    */
+  #[ORM\Column(name: 'logo', type: 'string', length: 255, nullable: true)]
+  #[AustralFile\UploadParameters(configName: "page_image")]
+  #[AustralFile\ImageSize(widthMin: 0, heightMin: 0)]
   protected ?string $logo = null;
 
   /**
    * @var string|null
-   * @ORM\Column(name="logo_second", type="string", length=255, nullable=true)
-   * @AustralFile\UploadParameters(configName="page_image")
-   * @AustralFile\ImageSize(widthMin="0", heightMin="0")
    */
+  #[ORM\Column(name: 'logo_second', type: 'string', length: 255, nullable: true)]
+  #[AustralFile\UploadParameters(configName: "page_image")]
+  #[AustralFile\ImageSize(widthMin: 0, heightMin: 0)]
   protected ?string $logoSecond = null;
 
   /**
    * @var string|null
-   * @ORM\Column(name="logo_email", type="string", length=255, nullable=true)
-   * @AustralFile\UploadParameters(configName="page_image")
-   * @AustralFile\ImageSize(widthMin="0", heightMin="0")
    */
+  #[ORM\Column(name: 'logo_email', type: 'string', length: 255, nullable: true)]
+  #[AustralFile\UploadParameters(configName: "page_image")]
+  #[AustralFile\ImageSize(widthMin: 0, heightMin: 0)]
   protected ?string $logoEmail = null;
 
   /**
    * @var string|null
-   * @ORM\Column(name="picto", type="string", length=255, nullable=true)
-   * @AustralFile\UploadParameters(configName="page_image")
-   * @AustralFile\ImageSize(widthMin="0", heightMin="0")
    */
+  #[ORM\Column(name: 'picto', type: 'string', length: 255, nullable: true)]
+  #[AustralFile\UploadParameters(configName: "page_image")]
+  #[AustralFile\ImageSize(widthMin: 0, heightMin: 0)]
   protected ?string $picto = null;
 
   /**
    * @var string|null
-   * @ORM\Column(name="picto_second", type="string", length=255, nullable=true)
-   * @AustralFile\UploadParameters(configName="page_image")
-   * @AustralFile\ImageSize(widthMin="0", heightMin="0")
    */
+  #[ORM\Column(name: 'picto_second', type: 'string', length: 255, nullable: true)]
+  #[AustralFile\UploadParameters(configName: "page_image")]
+  #[AustralFile\ImageSize(widthMin: 0, heightMin: 0)]
   protected ?string $pictoSecond = null;
 
   /**
    * @var string|null
-   * @ORM\Column(name="scheme", type="string", length=255, nullable=true )
    */
+  #[ORM\Column(name: 'scheme', type: 'string', length: 255, nullable: true)]
   protected ?string $scheme = null;
 
   /**
    * @var boolean
-   * @ORM\Column(name="is_master", type="boolean", nullable=true)
    */
+  #[ORM\Column(name: 'is_master', type: 'boolean', nullable: false, options: ["default" => false])]
   protected bool $isMaster = false;
   
   /**
    * @var boolean
-   * @ORM\Column(name="is_enabled", type="boolean", nullable=true)
    */
+  #[ORM\Column(name: 'is_enabled', type: 'boolean', nullable: false, options: ["default" => false])]
   protected bool $isEnabled = false;
 
   /**
    * @var boolean
-   * @ORM\Column(name="is_virtual", type="boolean", nullable=true, options={"default": false})
    */
+  #[ORM\Column(name: 'is_virtual', type: 'boolean', nullable: false, options: ["default" => false])]
   protected bool $isVirtual = false;
 
   /**
    * @var boolean
-   * @ORM\Column(name="is_translate", type="boolean", nullable=true, options={"default": false})
    */
+  #[ORM\Column(name: 'is_translate', type: 'boolean', nullable: false, options: ["default" => false])]
   protected bool $isTranslate = false;
 
   /**
    * @var string|null
-   * @ORM\Column(name="redirect_url", type="string", length=255, nullable=true )
    */
+  #[ORM\Column(name: 'redirect_url', type: 'string', length: 255, nullable: true)]
   protected ?string $redirectUrl = null;
 
   /**
    * @var boolean
-   * @ORM\Column(name="redirect_with_uri", type="boolean", nullable=false, options={"default": false})
    */
+  #[ORM\Column(name: 'redirect_with_uri', type: 'boolean', nullable: false, options: ["default" => false])]
   protected bool $redirectWithUri = false;
 
   /**
    * @var string|null
-   * @ORM\Column(name="contact_email", type="string", length=255, nullable=true )
    */
+  #[ORM\Column(name: 'contact_email', type: 'string', length: 255, nullable: true)]
   protected ?string $contactEmail = null;
 
   /**
    * @var string|null
-   * @ORM\Column(name="contact_phone", type="string", length=255, nullable=true )
    */
+  #[ORM\Column(name: 'contact_phone', type: 'string', length: 255, nullable: true)]
   protected ?string $contactPhone = null;
 
   /**
    * @var string|null
-   * @ORM\Column(name="contact_name", type="string", length=255, nullable=true )
    */
+  #[ORM\Column(name: 'contact_name', type: 'string', length: 255, nullable: true)]
   protected ?string $contactName = null;
 
   /**
    * @var string|null
-   * @ORM\Column(name="contact_address", type="string", length=255, nullable=true )
    */
+  #[ORM\Column(name: 'contact_address', type: 'string', length: 255, nullable: true)]
   protected ?string $contactAddress = null;
 
   /**
    * @var boolean
-   * @ORM\Column(name="one_page", type="boolean", nullable=true, options={"default": false})
    */
+  #[ORM\Column(name: 'one_page', type: 'boolean', nullable: false, options: ["default" => false])]
   protected bool $onePage = false;
 
   /**
    * @var string|null
-   * @ORM\Column(name="language", type="string", length=255, nullable=true )
    */
+  #[ORM\Column(name: 'language', type: 'string', length: 255, nullable: true)]
   protected ?string $language = null;
 
   /**
    * @var string|null
-   * @ORM\Column(name="email_from", type="string", length=255, nullable=true )
    */
+  #[ORM\Column(name: 'email_from', type: 'string', length: 255, nullable: true)]
   protected ?string $emailFrom = null;
 
   /**
-   * @var array|null
-   * @ORM\Column(name="config_keys", type="json", nullable=true, options={"default": "{}"})
+   * @var array<string, mixed>|null
    */
-  protected ?array $configKeys = array();
+  #[ORM\Column(name: 'config_keys', type: 'json', nullable: true, options: ['default' => '{}'])]
+  protected ?array $configKeys = [];
 
   /**
-   * @var int
-   * @Gedmo\SortablePosition
-   * @ORM\Column(name="position", type="integer", nullable=false, options={"default": 1} )
+   * @var int<1, max>
    */
+  #[Gedmo\SortablePosition]
+  #[ORM\Column(name: 'position', type: 'integer', nullable: false, options: ["default" => 1])]
   protected int $position = 1;
 
   /**
@@ -265,7 +287,7 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   }
 
   /**
-   * @return string
+   * @inheritDoc
    */
   public function __toString()
   {
@@ -273,7 +295,7 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   }
 
   /**
-   * @return DomainInterface|null
+   * @inheritDoc
    */
   public function getMaster(): ?DomainInterface
   {
@@ -281,18 +303,16 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   }
 
   /**
-   * @param DomainInterface $master
-   *
-   * @return Domain
+   * @inheritDoc
    */
-  public function setMaster(DomainInterface $master): Domain
+  public function setMaster(DomainInterface $master): self
   {
     $this->master = $master;
     return $this;
   }
 
   /**
-   * @return Collection
+   * @inheritDoc
    */
   public function getVirtuals(): Collection
   {
@@ -300,18 +320,16 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   }
 
   /**
-   * @param Collection $virtuals
-   *
-   * @return Domain
+   * @inheritDoc
    */
-  public function setVirtuals(Collection $virtuals): Domain
+  public function setVirtuals(Collection $virtuals): self
   {
     $this->virtuals = $virtuals;
     return $this;
   }
 
   /**
-   * @return bool
+   * @inheritDoc
    */
   public function getIsTranslate(): bool
   {
@@ -319,20 +337,16 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   }
 
   /**
-   * @param bool $isTranslate
-   *
-   * @return $this
+   * @inheritDoc
    */
-  public function setIsTranslate(bool $isTranslate): Domain
+  public function setIsTranslate(bool $isTranslate): self
   {
     $this->isTranslate = $isTranslate;
     return $this;
   }
 
   /**
-   * getDomainsByEnv
-   *
-   * @return array
+   * @inheritDoc
    */
   public function getDomainsByEnv(): array
   {
@@ -340,8 +354,9 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
     {
       return $this->getMaster()->getDomainsByEnv();
     }
+
     $domainsByEnv = array();
-    /** @var DomainInterface $virtual */
+    /** @var DomainInterface<T> $virtual */
     foreach($this->getVirtuals() as $virtual)
     {
       $domainsByEnv[$virtual->getDomainEnv()] = $virtual;
@@ -351,10 +366,7 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   }
 
   /**
-   * getDomainByEnv
-   *
-   * @param string $env
-   * @return DomainInterface
+   * @inheritDoc
    */
   public function getDomainByEnv(string $env): DomainInterface
   {
@@ -362,49 +374,45 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
     {
       return $this->getMaster()->getDomainByEnv($env);
     }
-    return AustralTools::getValueByKey($this->getDomainsByEnv(), $env, $this);
+    return AustralTools::valueByKey($this->getDomainsByEnv(), $env, $this);
   }
 
   /**
-   * @return string|null
+   * @inheritDoc
    */
-  public function getDomain(): ?string
+  public function getDomain(): string
   {
     return $this->domain;
   }
 
   /**
-   * @param string|null $domain
-   *
-   * @return Domain
+   * @inheritDoc
    */
-  public function setDomain(?string $domain): Domain
+  public function setDomain(string $domain = ""): self
   {
     $this->domain = $domain;
     return $this;
   }
 
   /**
-   * @return string|null
+   * @inheritDoc
    */
-  public function getName(): ?string
+  public function getName(): string
   {
     return $this->name;
   }
 
   /**
-   * @param string|null $name
-   *
-   * @return $this
+   * @inheritDoc
    */
-  public function setName(?string $name): Domain
+  public function setName(string $name = ""): self
   {
     $this->name = $name;
     return $this;
   }
 
   /**
-   * @return string|null
+   * @inheritDoc
    */
   public function getKeyname(): ?string
   {
@@ -412,20 +420,16 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   }
 
   /**
-   * @param string|null $keyname
-   *
-   * @return Domain
+   * @inheritDoc
    */
-  public function setKeyname(?string $keyname): Domain
+  public function setKeyname(string $keyname): self
   {
     $this->keyname = $this->keynameGenerator($keyname);
     return $this;
   }
 
   /**
-   * getDomainEnv
-   *
-   * @return string
+   * @inheritDoc
    */
   public function getDomainEnv(): string
   {
@@ -433,21 +437,16 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   }
 
   /**
-   * setDomainEnv
-   *
-   * @param string $domainEnv
-   * @return $this
+   * @inheritDoc
    */
-  public function setDomainEnv(string $domainEnv): Domain
+  public function setDomainEnv(string $domainEnv): self
   {
     $this->domainEnv = $domainEnv;
     return $this;
   }
 
   /**
-   * getFavicon
-   *
-   * @return string|null
+   * @inheritDoc
    */
   public function getFavicon(): ?string
   {
@@ -455,39 +454,16 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   }
 
   /**
-   * @param string|null $favicon
-   * @return $this
+   * @inheritDoc
    */
-  public function setFavicon(?string $favicon): Domain
+  public function setFavicon(?string $favicon): self
   {
     $this->favicon = $favicon;
     return $this;
   }
 
   /**
-   * getFaviconSecond
-   *
-   * @return string|null
-   */
-  public function getFaviconSecond(): ?string
-  {
-    return $this->faviconSecond;
-  }
-
-  /**
-   * @param string|null $faviconSecond
-   * @return $this
-   */
-  public function setFaviconSecond(?string $faviconSecond): Domain
-  {
-    $this->faviconSecond = $faviconSecond;
-    return $this;
-  }
-
-  /**
-   * getLogo
-   *
-   * @return string|null
+   * @inheritDoc
    */
   public function getLogo(): ?string
   {
@@ -495,97 +471,16 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   }
 
   /**
-   * @param string|null $logo
-   * @return $this
+   * @inheritDoc
    */
-  public function setLogo(?string $logo): Domain
+  public function setLogo(?string $logo): self
   {
     $this->logo = $logo;
     return $this;
   }
 
   /**
-   * getLogoSecond
-   *
-   * @return string|null
-   */
-  public function getLogoSecond(): ?string
-  {
-    return $this->logoSecond;
-  }
-
-  /**
-   * @param string|null $logoSecond
-   * @return $this
-   */
-  public function setLogoSecond(?string $logoSecond): Domain
-  {
-    $this->logoSecond = $logoSecond;
-    return $this;
-  }
-
-  /**
-   * getLogoEmail
-   *
-   * @return string|null
-   */
-  public function getLogoEmail(): ?string
-  {
-    return $this->logoEmail;
-  }
-
-  /**
-   * @param string|null $logoEmail
-   * @return $this
-   */
-  public function setLogoEmail(?string $logoEmail): Domain
-  {
-    $this->logoEmail = $logoEmail;
-    return $this;
-  }
-
-  /**
-   * getPicto
-   *
-   * @return string|null
-   */
-  public function getPicto(): ?string
-  {
-    return $this->picto;
-  }
-
-  /**
-   * @param string|null $picto
-   * @return $this
-   */
-  public function setPicto(?string $picto): Domain
-  {
-    $this->picto = $picto;
-    return $this;
-  }
-
-  /**
-   * getPictoSecond
-   *
-   * @return string|null
-   */
-  public function getPictoSecond(): ?string
-  {
-    return $this->pictoSecond;
-  }
-
-  /**
-   * @param string|null $pictoSecond
-   * @return $this
-   */
-  public function setPictoSecond(?string $pictoSecond): Domain
-  {
-    $this->pictoSecond = $pictoSecond;
-    return $this;
-  }
-
-  /**
-   * @return string
+   * @inheritDoc
    */
   public function getScheme(): string
   {
@@ -593,18 +488,16 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   }
 
   /**
-   * @param string $scheme
-   *
-   * @return Domain
+   * @inheritDoc
    */
-  public function setScheme(string $scheme): Domain
+  public function setScheme(string $scheme): self
   {
     $this->scheme = $scheme;
     return $this;
   }
 
   /**
-   * @return bool
+   * @inheritDoc
    */
   public function getIsMaster(): bool
   {
@@ -612,18 +505,16 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   }
 
   /**
-   * @param bool $isMaster
-   *
-   * @return Domain
+   * @inheritDoc
    */
-  public function setIsMaster(bool $isMaster): Domain
+  public function setIsMaster(bool $isMaster): self
   {
     $this->isMaster = $isMaster;
     return $this;
   }
 
   /**
-   * @return bool
+   * @inheritDoc
    */
   public function getIsEnabled(): bool
   {
@@ -631,18 +522,16 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   }
 
   /**
-   * @param bool $isEnabled
-   *
-   * @return Domain
+   * @inheritDoc
    */
-  public function setIsEnabled(bool $isEnabled): Domain
+  public function setIsEnabled(bool $isEnabled): self
   {
     $this->isEnabled = $isEnabled;
     return $this;
   }
 
   /**
-   * @return bool
+   * @inheritDoc
    */
   public function getIsVirtual(): bool
   {
@@ -650,18 +539,16 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   }
 
   /**
-   * @param bool $isVirtual
-   *
-   * @return $this
+   * @inheritDoc
    */
-  public function setIsVirtual(bool $isVirtual): Domain
+  public function setIsVirtual(bool $isVirtual): self
   {
     $this->isVirtual = $isVirtual;
     return $this;
   }
 
   /**
-   * @return bool
+   * @inheritDoc
    */
   public function getIsRedirect(): bool
   {
@@ -669,7 +556,7 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   }
 
   /**
-   * @return string|null
+   * @inheritDoc
    */
   public function getRedirectUrl(): ?string
   {
@@ -677,18 +564,16 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   }
 
   /**
-   * @param string|null $redirectUrl
-   *
-   * @return Domain
+   * @inheritDoc
    */
-  public function setRedirectUrl(?string $redirectUrl): Domain
+  public function setRedirectUrl(?string $redirectUrl): self
   {
     $this->redirectUrl = $redirectUrl;
     return $this;
   }
 
   /**
-   * @return bool
+   * @inheritDoc
    */
   public function getRedirectWithUri(): bool
   {
@@ -696,98 +581,16 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   }
 
   /**
-   * @param bool $withUri
-   *
-   * @return Domain
+   * @inheritDoc
    */
-  public function setRedirectWithUri(bool $withUri): Domain
+  public function setRedirectWithUri(bool $withUri): self
   {
     $this->redirectWithUri = $withUri;
     return $this;
   }
 
   /**
-   * getContactEmail
-   *
-   * @return string|null
-   */
-  public function getContactEmail(): ?string
-  {
-    return $this->contactEmail;
-  }
-
-  /**
-   * @param string|null $contactEmail
-   * @return $this
-   */
-  public function setContactEmail(?string $contactEmail): Domain
-  {
-    $this->contactEmail = $contactEmail;
-    return $this;
-  }
-
-  /**
-   * getContactPhone
-   *
-   * @return string|null
-   */
-  public function getContactPhone(): ?string
-  {
-    return $this->contactPhone;
-  }
-
-  /**
-   * @param string|null $contactPhone
-   * @return $this
-   */
-  public function setContactPhone(?string $contactPhone): Domain
-  {
-    $this->contactPhone = $contactPhone;
-    return $this;
-  }
-
-  /**
-   * getContactName
-   *
-   * @return string|null
-   */
-  public function getContactName(): ?string
-  {
-    return $this->contactName;
-  }
-
-  /**
-   * @param string|null $contactName
-   * @return $this
-   */
-  public function setContactName(?string $contactName): Domain
-  {
-    $this->contactName = $contactName;
-    return $this;
-  }
-
-  /**
-   * getContactAddress
-   *
-   * @return string|null
-   */
-  public function getContactAddress(): ?string
-  {
-    return $this->contactAddress;
-  }
-
-  /**
-   * @param string|null $contactAddress
-   * @return $this
-   */
-  public function setContactAddress(?string $contactAddress): Domain
-  {
-    $this->contactAddress = $contactAddress;
-    return $this;
-  }
-
-  /**
-   * @return bool
+   * @inheritDoc
    */
   public function getOnePage(): bool
   {
@@ -795,18 +598,16 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   }
 
   /**
-   * @param bool $onePage
-   *
-   * @return $this
+   * @inheritDoc
    */
-  public function setOnePage(bool $onePage): Domain
+  public function setOnePage(bool $onePage): self
   {
     $this->onePage = $onePage;
     return $this;
   }
 
   /**
-   * @return string|null
+   * @inheritDoc
    */
   public function getLanguage(): ?string
   {
@@ -814,9 +615,7 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   }
 
   /**
-   * @param string|null $language
-   *
-   * @return Domain
+   * @inheritDoc
    */
   public function setLanguage(?string $language): Domain
   {
@@ -825,19 +624,17 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   }
 
   /**
-   * @return int|null
+   * @inheritDoc
    */
-  public function getPosition(): ?int
+  public function getPosition(): int
   {
     return $this->position;
   }
 
   /**
-   * @param int|null $position
-   *
-   * @return Domain
+   * @inheritDoc
    */
-  public function setPosition(?int $position): Domain
+  public function setPosition(int $position): self
   {
     $this->position = $position;
     return $this;
@@ -849,7 +646,7 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   protected ?string $requestLanguage = null;
 
   /**
-   * @return string|null
+   * @inheritDoc
    */
   public function getCurrentLanguage(): ?string
   {
@@ -857,7 +654,7 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   }
 
   /**
-   * @return string|null
+   * @inheritDoc
    */
   public function getRequestLanguage(): ?string
   {
@@ -865,47 +662,21 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   }
 
   /**
-   * @param string|null $requestLanguage
-   *
-   * @return $this
+   * @inheritDoc
    */
-  public function setRequestLanguage(string $requestLanguage = null): Domain
+  public function setRequestLanguage(?string $requestLanguage = null): self
   {
     $this->requestLanguage = $requestLanguage;
     return $this;
   }
 
   /**
-   * getEmailFrom
-   *
-   * @return string|null
-   */
-  public function getEmailFrom(): ?string
-  {
-    return $this->emailFrom;
-  }
-
-  /**
-   * setEmailFrom
-   *
-   * @param string|null $emailFrom
-   * @return $this
-   */
-  public function setEmailFrom(?string $emailFrom): self
-  {
-    $this->emailFrom = $emailFrom;
-    return $this;
-  }
-
-  /**
-   * getDomainsTranslate
-   *
-   * @return array
+   * @inheritDoc
    */
   public function getDomainsTranslate(): array
   {
     $domainsByTranslate = array();
-    /** @var DomainInterface $virtual */
+    /** @var DomainInterface<T> $virtual */
     foreach($this->getVirtuals() as $virtual)
     {
       if($virtual->getIsTranslate() && !$this->getIsVirtual())
@@ -917,14 +688,11 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   }
 
   /**
-   * getDomainTranslateByLanguage
-   *
-   * @param ?string $language
-   * @return ?DomainInterface
+   * @inheritDoc
    */
   public function getDomainTranslateByLanguage(?string $language = null): ?DomainInterface
   {
-    return $language ? AustralTools::getValueByKey($this->getDomainsTranslate(), $language, null) : null;
+    return $language ? AustralTools::valueByKey($this->getDomainsTranslate(), $language) : null;
   }
 
   /**
@@ -968,6 +736,196 @@ abstract class Domain extends Entity implements DomainInterface, EntityInterface
   public function setConfigKey(string $keyname, mixed $value = null): self
   {
     $this->configKeys[$keyname] = $value;
+    return $this;
+  }
+
+  /**
+   * @return string|null
+   */
+  public function getFaviconSecond(): ?string
+  {
+    return $this->faviconSecond;
+  }
+
+  /**
+   * @param string|null $faviconSecond
+   *
+   * @return $this
+   */
+  public function setFaviconSecond(?string $faviconSecond): self
+  {
+    $this->faviconSecond = $faviconSecond;
+    return $this;
+  }
+
+  /**
+   * @return string|null
+   */
+  public function getLogoSecond(): ?string
+  {
+    return $this->logoSecond;
+  }
+
+  /**
+   * @param string|null $logoSecond
+   *
+   * @return $this
+   */
+  public function setLogoSecond(?string $logoSecond): self
+  {
+    $this->logoSecond = $logoSecond;
+    return $this;
+  }
+
+  /**
+   * @return string|null
+   */
+  public function getLogoEmail(): ?string
+  {
+    return $this->logoEmail;
+  }
+
+  /**
+   * @param string|null $logoEmail
+   *
+   * @return $this
+   */
+  public function setLogoEmail(?string $logoEmail): self
+  {
+    $this->logoEmail = $logoEmail;
+    return $this;
+  }
+
+  /**
+   * @return string|null
+   */
+  public function getPicto(): ?string
+  {
+    return $this->picto;
+  }
+
+  /**
+   * @param string|null $picto
+   *
+   * @return $this
+   */
+  public function setPicto(?string $picto): self
+  {
+    $this->picto = $picto;
+    return $this;
+  }
+
+  /**
+   * @return string|null
+   */
+  public function getPictoSecond(): ?string
+  {
+    return $this->pictoSecond;
+  }
+
+  /**
+   * @param string|null $pictoSecond
+   *
+   * @return $this
+   */
+  public function setPictoSecond(?string $pictoSecond): self
+  {
+    $this->pictoSecond = $pictoSecond;
+    return $this;
+  }
+
+  /**
+   * @return string|null
+   */
+  public function getContactEmail(): ?string
+  {
+    return $this->contactEmail;
+  }
+
+  /**
+   * @param string|null $contactEmail
+   *
+   * @return $this
+   */
+  public function setContactEmail(?string $contactEmail): self
+  {
+    $this->contactEmail = $contactEmail;
+    return $this;
+  }
+
+  /**
+   * @return string|null
+   */
+  public function getContactPhone(): ?string
+  {
+    return $this->contactPhone;
+  }
+
+  /**
+   * @param string|null $contactPhone
+   *
+   * @return $this
+   */
+  public function setContactPhone(?string $contactPhone): self
+  {
+    $this->contactPhone = $contactPhone;
+    return $this;
+  }
+
+  /**
+   * @return string|null
+   */
+  public function getContactName(): ?string
+  {
+    return $this->contactName;
+  }
+
+  /**
+   * @param string|null $contactName
+   *
+   * @return $this
+   */
+  public function setContactName(?string $contactName): self
+  {
+    $this->contactName = $contactName;
+    return $this;
+  }
+
+  /**
+   * @return string|null
+   */
+  public function getContactAddress(): ?string
+  {
+    return $this->contactAddress;
+  }
+
+  /**
+   * @param string|null $contactAddress
+   *
+   * @return $this
+   */
+  public function setContactAddress(?string $contactAddress): self
+  {
+    $this->contactAddress = $contactAddress;
+    return $this;
+  }
+
+  /**
+   * @return string|null
+   */
+  public function getEmailFrom(): ?string
+  {
+    return $this->emailFrom;
+  }
+
+  /**
+   * @param string|null $emailFrom
+   *
+   * @return $this
+   */
+  public function setEmailFrom(?string $emailFrom): self
+  {
+    $this->emailFrom = $emailFrom;
     return $this;
   }
 }

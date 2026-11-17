@@ -10,12 +10,14 @@
 
 namespace Austral\HttpBundle\Mapping;
 
-use Austral\EntityBundle\Entity\EntityInterface;
 use Austral\EntityBundle\Mapping\EntityClassMapping;
-use Austral\EntityBundle\Mapping\FieldMappingInterface;
 
 /**
  * Austral DomainFilterMapping.
+ * @template T of object
+ *
+ * @extends EntityClassMapping<T>
+ *
  * @author Matthieu Beurel <matthieu@austral.dev>
  * @final
  */
@@ -55,9 +57,9 @@ final Class DomainFilterMapping extends EntityClassMapping
   /**
    * @param bool $autoDomainId
    *
-   * @return DomainFilterMapping
+   * @return $this
    */
-  public function setAutoDomainId(bool $autoDomainId): DomainFilterMapping
+  public function setAutoDomainId(bool $autoDomainId): self
   {
     $this->autoDomainId = $autoDomainId;
     return $this;
@@ -74,9 +76,9 @@ final Class DomainFilterMapping extends EntityClassMapping
   /**
    * @param bool $forAllDomainEnabled
    *
-   * @return DomainFilterMapping
+   * @return $this
    */
-  public function setForAllDomainEnabled(bool $forAllDomainEnabled): DomainFilterMapping
+  public function setForAllDomainEnabled(bool $forAllDomainEnabled): self
   {
     $this->forAllDomainEnabled = $forAllDomainEnabled;
     return $this;
@@ -95,35 +97,9 @@ final Class DomainFilterMapping extends EntityClassMapping
    *
    * @return $this
    */
-  public function setAutoAttachement(bool $autoAttachement): DomainFilterMapping
+  public function setAutoAttachement(bool $autoAttachement): self
   {
     $this->autoAttachement = $autoAttachement;
-    return $this;
-  }
-
-  /**
-   * @param EntityInterface $object
-   * @param string|null $fieldname
-   *
-   * @return mixed
-   * @throws \Exception
-   */
-  public function getObjectValue(EntityInterface $object, string $fieldname = null)
-  {
-    return $object->getValueByFieldname($fieldname);
-  }
-
-  /**
-   * @param EntityInterface $object
-   * @param string|null $fieldname
-   * @param null $value
-   *
-   * @return $this
-   * @throws \Exception
-   */
-  public function setObjectValue(EntityInterface $object, string $fieldname = null, $value = null): DomainFilterMapping
-  {
-    $object->setValueByFieldname($fieldname);
     return $this;
   }
 
