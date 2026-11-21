@@ -12,6 +12,4 @@ austral_http:
       -                     prod
 
   compression_gzip:
-    admin:                  true
-    website:                true
-    other:                  true
+    default:                true

@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Austral Http Bundle package.
  *
@@ -10,25 +11,21 @@
 
 namespace Austral\HttpBundle;
 
-use Austral\HttpBundle\DependencyInjection\Compiler\DoctrineResolveTargetEntityPass;
-use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 /**
  * Austral Http Bundle.
+ *
  * @author Matthieu Beurel <matthieu@austral.dev>
  */
 class AustralHttpBundle extends Bundle
 {
-
   /**
    * @param ContainerBuilder $container
    */
   public function build(ContainerBuilder $container): void
   {
     parent::build($container);
-    $container->addCompilerPass(new DoctrineResolveTargetEntityPass(), PassConfig::TYPE_BEFORE_OPTIMIZATION, 1000);
   }
-  
 }

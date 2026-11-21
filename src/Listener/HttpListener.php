@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Austral Http Bundle package.
  *
@@ -12,21 +13,15 @@ namespace Austral\HttpBundle\Listener;
 
 use Austral\HttpBundle\Configuration\HttpConfiguration;
 use Austral\HttpBundle\Controller\Interfaces\HttpControllerInterface;
-use Austral\HttpBundle\Event\HttpEvent;
 use Austral\HttpBundle\Event\Interfaces\HttpEventInterface;
-
 use Austral\HttpBundle\Services\HttpRequest;
-use Austral\ToolsBundle\AustralTools;
 use Austral\ToolsBundle\Services\Debug;
-
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBagInterface;
 use Symfony\Component\HttpFoundation\StreamedResponse;
-use Symfony\Component\HttpKernel\Controller\ControllerResolverInterface;
 use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
@@ -35,13 +30,13 @@ use Symfony\Component\HttpKernel\Event\ResponseEvent;
 
 /**
  * Austral Http Listener.
+ *
  * @template T of object
  *
  * @author Matthieu Beurel <matthieu@austral.dev>
  */
 class HttpListener
 {
-
   /**
    * @var HttpEventInterface<T>|null
    */
@@ -50,65 +45,64 @@ class HttpListener
   /**
    * ControllerListener constructor.
    *
-   * @param ContainerInterface $container
    * @param EventDispatcherInterface $eventDispatcher
-   * @param HttpConfiguration $configuration
-   * @param HttpRequest<T> $httpRequest
-   * @param Debug $debug
+   * @param HttpConfiguration        $configuration
+   * @param HttpRequest<T>           $httpRequest
+   * @param Debug                    $debug
    */
   public function __construct(
-    #[Autowire(service: "service_container")] protected ContainerInterface $container,
-    #[Autowire(service: "event_dispatcher")] protected EventDispatcherInterface $eventDispatcher,
-    #[Autowire(service: "austral.http.config")] protected HttpConfiguration $configuration,
-    #[Autowire(service: "austral.http.request")] protected HttpRequest $httpRequest,
-    #[Autowire(service: "austral.tools.debug")] protected Debug $debug)
-  {
+    #[Autowire(service: 'event_dispatcher')] protected EventDispatcherInterface $eventDispatcher,
+    #[Autowire(service: 'austral.http.config')] protected HttpConfiguration $configuration,
+    #[Autowire(service: 'austral.http.request')] protected HttpRequest $httpRequest,
+    #[Autowire(service: 'austral.tools.debug')] protected Debug $debug
+  ) {
   }
 
   /**
    * @param RequestEvent $event
    */
-  public function initRequest(RequestEvent $event): void
+  public function onRequestInitialise(RequestEvent $event): void
   {
-    $this->debug->stopWatchStart("init-request", "austral.http.listener");
+    $this->debug->stopWatchStart('init-request', 'austral.http.listener');
 
-    /** @var AttributeBagInterface $requestAttributes */
+    /** @var ParameterBag $requestAttributes */
     $requestAttributes = $event->getRequest()->attributes;
 
-    $data = array();
-    $headerContentType = $event->getRequest()->headers->get('Content-Type') ?? "";
-    if (str_starts_with($headerContentType, 'application/json')) {
+    $data = [];
+    $headerContentType = $event->getRequest()->headers->get('Content-Type') ?? '';
+    if (str_starts_with($headerContentType, 'application/json'))
+    {
       $data = json_decode($event->getRequest()->getContent(), true);
     }
-    if($data && count($data) > 0)
+    if ($data && count($data) > 0)
     {
-      foreach($data as $key => $values)
+      foreach ($data as $key => $values)
       {
         $event->getRequest()->request->set($key, $values);
       }
     }
 
     $this->httpRequest->setRequest($event->getRequest());
-    $this->httpRequest->setCompressionGzipEnabled(true);
+    $this->httpRequest->setCompressionGzipEnabled((bool) $this->configuration->get('compression_gzip.default', true));
 
     /** @var class-string<HttpEventInterface<T>>|null $httpEventName */
     $httpEventName = $requestAttributes->get('_austral_http_event');
-    if($httpEventName)
+    if ($httpEventName)
     {
-      if(class_exists($httpEventName))
+      if (class_exists($httpEventName))
       {
         $this->httpEvent = new $httpEventName();
       }
     }
 
-    if($this->httpEvent)
+    if ($this->httpEvent)
     {
       $this->httpEvent->setKernelEvent($event);
       $this->httpEvent->setHttpRequest($this->httpRequest);
       $this->eventDispatcher->dispatch($this->httpEvent, HttpEventInterface::EVENT_AUSTRAL_HTTP_REQUEST_INITIALISE);
     }
 
-    if($_locale = $requestAttributes->get("_locale"))
+    if ($_locale = $requestAttributes->get('_locale'))
     {
       $this->httpRequest->setLanguage($_locale);
     }
@@ -116,7 +110,7 @@ class HttpListener
     $event->getRequest()->setLocale($this->httpRequest->getLanguage());
     $event->getRequest()->setDefaultLocale($this->httpRequest->getLanguage());
 
-    $this->debug->stopWatchStop("init-request");
+    $this->debug->stopWatchStop('init-request');
   }
 
   /**
@@ -125,12 +119,13 @@ class HttpListener
   public function onRequest(RequestEvent $event): void
   {
     $this->httpRequest->setRequest($event->getRequest());
-    $this->debug->stopWatchStart("request", "austral.http.listener");
-    if($this->httpEvent && $event->isMainRequest()) {
+    $this->debug->stopWatchStart('request', 'austral.http.listener');
+    if ($this->httpEvent && $event->isMainRequest())
+    {
       $this->httpEvent->setKernelEvent($event);
       $this->eventDispatcher->dispatch($this->httpEvent, $this->httpEvent::EVENT_AUSTRAL_HTTP_REQUEST);
     }
-    $this->debug->stopWatchStop("request");
+    $this->debug->stopWatchStop('request');
   }
 
   /**
@@ -138,12 +133,13 @@ class HttpListener
    */
   public function onException(ExceptionEvent $event): void
   {
-    $this->debug->stopWatchStart("exception", "austral.http.listener");
-    if($this->httpEvent && $event->isMainRequest()) {
+    $this->debug->stopWatchStart('exception', 'austral.http.listener');
+    if ($this->httpEvent && $event->isMainRequest())
+    {
       $this->httpEvent->setKernelEvent($event);
       $this->eventDispatcher->dispatch($this->httpEvent, $this->httpEvent::EVENT_AUSTRAL_HTTP_EXCEPTION);
     }
-    $this->debug->stopWatchStop("exception");
+    $this->debug->stopWatchStop('exception');
   }
 
   /**
@@ -151,23 +147,23 @@ class HttpListener
    */
   public function onController(ControllerEvent $controllerEvent): void
   {
-    $this->debug->stopWatchStart("controller", "austral.http.listener");
-    if($this->httpEvent && $controllerEvent->isMainRequest()) {
+    $this->debug->stopWatchStart('controller', 'austral.http.listener');
+    if ($this->httpEvent && $controllerEvent->isMainRequest())
+    {
       $eventController = $controllerEvent->getController();
-      if(!is_array($eventController)) {
-        return;
-      }
-      $controller = $this->getHttpController($eventController);
-      if($controller) {
+      $controller = is_array($eventController) ? $this->getHttpController($eventController) : null;
+      if ($controller)
+      {
         $this->httpEvent->setKernelEvent($controllerEvent);
         $this->eventDispatcher->dispatch($this->httpEvent, $this->httpEvent::EVENT_AUSTRAL_HTTP_CONTROLLER);
-        if($this->httpEvent->getHandler()) {
+        if ($this->httpEvent->getHandler())
+        {
           $controller->setHandlerManager($this->httpEvent->getHandler());
           $controller->setTemplateParameters($this->httpEvent->getHandler()->getTemplateParameters());
         }
       }
     }
-    $this->debug->stopWatchStop("controller");
+    $this->debug->stopWatchStop('controller');
   }
 
   /**
@@ -175,35 +171,38 @@ class HttpListener
    */
   public function onResponse(ResponseEvent $responseEvent): void
   {
-    $this->debug->stopWatchStart("response", "austral.http.listener");
-    if($this->httpEvent && $responseEvent->isMainRequest()) {
+    $this->debug->stopWatchStart('response', 'austral.http.listener');
+    if ($this->httpEvent && $responseEvent->isMainRequest())
+    {
       $this->httpEvent->setKernelEvent($responseEvent);
 
       $this->eventDispatcher->dispatch($this->httpEvent, $this->httpEvent::EVENT_AUSTRAL_HTTP_RESPONSE);
       $response = $responseEvent->getResponse();
 
-      if(!$response instanceof RedirectResponse
+      if (!$response instanceof RedirectResponse
         && !$response instanceof BinaryFileResponse
         && !$response instanceof StreamedResponse
-      )
-      {
+      ) {
         $content = $response->getContent();
-        if($this->httpRequest->getIsCompressionGzipEnabled() && $content) {
+        if ($this->httpRequest->getIsCompressionGzipEnabled() && $content)
+        {
           $encodings = $responseEvent->getRequest()->getEncodings();
-          if(in_array('gzip', $encodings) && function_exists('gzencode')) {
-            $content = gzencode($content) ?: "";
+          if (in_array('gzip', $encodings) && function_exists('gzencode'))
+          {
+            $content = gzencode($content) ?: '';
             $response->setContent($content);
             $response->headers->set('Content-encoding', 'gzip');
           }
-          elseif(in_array('deflate', $encodings) && function_exists('gzdeflate')) {
-            $content = gzdeflate($content) ?: "";
+          elseif (in_array('deflate', $encodings) && function_exists('gzdeflate'))
+          {
+            $content = gzdeflate($content) ?: '';
             $response->setContent($content);
             $response->headers->set('Content-encoding', 'deflate');
           }
         }
       }
     }
-    $this->debug->stopWatchStart("response");
+    $this->debug->stopWatchStop('response');
   }
 
   /**
@@ -211,12 +210,13 @@ class HttpListener
    */
   public function onFinishRequest(FinishRequestEvent $finishRequestEvent): void
   {
-    $this->debug->stopWatchStart("finish-request", "austral.http.listener");
-    if($this->httpEvent && $finishRequestEvent->isMainRequest()) {
+    $this->debug->stopWatchStart('finish-request', 'austral.http.listener');
+    if ($this->httpEvent && $finishRequestEvent->isMainRequest())
+    {
       $this->httpEvent->setKernelEvent($finishRequestEvent);
       $this->eventDispatcher->dispatch($this->httpEvent, $this->httpEvent::EVENT_AUSTRAL_HTTP_REQUEST_FINISH);
     }
-    $this->debug->stopWatchStart("finish-request");
+    $this->debug->stopWatchStop('finish-request');
   }
 
   /**
@@ -227,11 +227,11 @@ class HttpListener
   protected function getHttpController(array $controllers): ?HttpControllerInterface
   {
     $controller = $controllers[0];
-    if($controller instanceof HttpControllerInterface)
+    if ($controller instanceof HttpControllerInterface)
     {
       return $controller;
     }
+
     return null;
   }
-
 }

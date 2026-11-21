@@ -6,7 +6,7 @@
 [![Symfony](https://img.shields.io/badge/symfony-7.4-black)](https://symfony.com/releases/7.4)
 [![License](https://img.shields.io/github/license/austral-project/http-bundle)](LICENSE)
 
-Http Austral Bundle
+Base of the HTTP layer of Austral: kernel listener, `HttpEvent` dispatched on each step of a request (initialise, request, controller, response, exception, finish), base classes for controllers, handlers and subscribers, current language and environment, gzip / deflate compression of the responses.
 
 > This bundle is part of [Austral](https://github.com/austral-project), a modular back office and CMS for Symfony.
 
@@ -35,12 +35,25 @@ return [
 ```yaml
 # config/packages/austral_http.yaml
 austral_http:
-    # ...
+    protocol: https            # default: https
+    default_language: en       # default: en
+    languages: [fr, en]
+    env:
+        current: prod          # default: prod
+        list: [prod]
+    compression_gzip:
+        default: true      # gzip / deflate compression of the responses
+        # admin: true      # read by admin-bundle for the administration requests
+        # website: true    # read by website-bundle for the website requests
 ```
+
+`compression_gzip.default` applies to every request. admin-bundle and website-bundle override it for their own requests with the `admin` and `website` keys, and fall back to `default` when the key is not set.
+
+The domains (multi-site) are managed by [austral/domain-bundle](https://github.com/austral-project/domain-bundle), which http-bundle does not depend on.
 
 ## Usage
 
-<!-- Minimal, concrete example. -->
+A route opts in to the Austral HTTP events with the `_austral_http_event` attribute, set to the class of the event to dispatch (an `HttpEventInterface`). The upper bundles (admin, website) subscribe to these events through `HttpEventSubscriber`.
 
 ## Documentation
 

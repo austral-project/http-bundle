@@ -1,46 +1,60 @@
 {
-    "name": "austral/http-bundle",
-    "type": "symfony-bundle",
-    "description": "Http Austral Bundle",
-    "keywords": [
-        "Austral",
-        "http",
-        "Symfony"
-    ],
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "Matthieu Beurel",
-            "email": "matthieu@austral.dev",
-            "role": "Developer"
-        }
-    ],
-    "require": {
-        "php": ">=8.4 <9.0",
-        "austral/contracts": "^4.0",
-        "austral/tools-bundle": "^4.0",
-        "austral/entity-bundle": "^4.0",
-        "symfony/config": "^7.4",
-        "symfony/event-dispatcher": "^7.4",
-        "symfony/http-kernel": "^7.4"
-    },
-    "require-dev": {
-        "friendsofphp/php-cs-fixer": "^3.64",
-        "phpstan/phpstan": "^2.0",
-        "phpstan/phpstan-symfony": "^2.0"
-    },
-    "suggest": {
-        "austral/admin-bundle": "^4.0",
-        "austral/website-bundle": "^4.0"
-    },
-    "config": {
-        "sort-packages": true
-    },
-    "autoload": {
-        "psr-4": {
-            "Austral\\HttpBundle\\": ""
-        }
-    },
-    "minimum-stability": "dev",
-    "prefer-stable": true
+  "name": "austral/http-bundle",
+  "type": "symfony-bundle",
+  "description": "Http Austral Bundle",
+  "keywords": [
+    "Austral",
+    "http",
+    "Symfony"
+  ],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Matthieu Beurel",
+      "email": "matthieu@austral.dev",
+      "role": "Developer"
+    }
+  ],
+  "require": {
+    "php": ">=8.4 <9.0",
+    "ext-zlib": "*",
+    "austral/contracts": "^4.0",
+    "austral/tools-bundle": "^4.0",
+    "austral/entity-bundle": "^4.0",
+    "symfony/config": "^7.4",
+    "symfony/dependency-injection": "^7.4",
+    "symfony/event-dispatcher-contracts": "^3.5",
+    "symfony/routing": "^7.4",
+    "symfony/event-dispatcher": "^7.4",
+    "symfony/http-kernel": "^7.4",
+    "symfony/http-foundation": "^7.4",
+    "symfony/yaml": "^7.4",
+    "symfony/translation-contracts": "^3.5",
+    "twig/twig": "^3.0"
+  },
+  "require-dev": {
+    "friendsofphp/php-cs-fixer": "^3.64",
+    "phpstan/phpstan": "^2.0",
+    "phpstan/phpstan-symfony": "^2.0",
+    "phpunit/phpunit": "^11"
+  },
+  "suggest": {
+    "austral/admin-bundle": "^4.0",
+    "austral/website-bundle": "^4.0"
+  },
+  "config": {
+    "sort-packages": true
+  },
+  "autoload": {
+    "psr-4": {
+      "Austral\\HttpBundle\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Austral\\HttpBundle\\Tests\\": "tests/"
+    }
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
 }

@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Austral Http Bundle package.
  *
@@ -15,13 +16,13 @@ use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Austral Request.
+ *
  * @template T of object
  *
  * @author Matthieu Beurel <matthieu@austral.dev>
  */
-Class HttpRequest
+class HttpRequest
 {
-
   /**
    * @var HttpConfiguration
    */
@@ -35,7 +36,7 @@ Class HttpRequest
   /**
    * @var array<string, string>
    */
-  protected array $multiLanguages = array();
+  protected array $multiLanguages = [];
 
   /**
    * @var Request|null
@@ -79,16 +80,18 @@ Class HttpRequest
   public function setLanguage(?string $language): HttpRequest
   {
     $this->language = $language;
+
     return $this;
   }
 
   /**
    * getMultiLanguages
+   *
    * @return array<string, string>
    */
   public function getMultiLanguages(): array
   {
-    return $this->httpConfiguration->get('languages', array());
+    return $this->httpConfiguration->get('languages', []);
   }
 
   /**
@@ -107,6 +110,7 @@ Class HttpRequest
   public function setRequest(?Request $request): HttpRequest
   {
     $this->request = $request;
+
     return $this;
   }
 
@@ -118,6 +122,7 @@ Class HttpRequest
   public function setTokenStorage(?Request $request): HttpRequest
   {
     $this->request = $request;
+
     return $this;
   }
 
@@ -137,7 +142,7 @@ Class HttpRequest
   public function setCompressionGzipEnabled(bool $compressionGzipEnabled): HttpRequest
   {
     $this->compressionGzipEnabled = $compressionGzipEnabled;
+
     return $this;
   }
-
 }

@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Austral Http Bundle package.
  *
@@ -7,7 +8,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
- 
+
 namespace Austral\HttpBundle\Event\Interfaces;
 
 use Austral\HttpBundle\Handler\Interfaces\HttpHandlerInterface;
@@ -16,23 +17,22 @@ use Symfony\Component\HttpKernel\Event\KernelEvent;
 
 /**
  * Austral Http Event Interface.
+ *
  * @template T of object
  *
  * @author Matthieu Beurel <matthieu@austral.dev>
  */
 interface HttpEventInterface
 {
-
-  const string EVENT_AUSTRAL_HTTP_REQUEST_INITIALISE = "austral.event.http.request.initialise";
-  const string EVENT_AUSTRAL_HTTP_REQUEST = "austral.event.http.request";
-  const string EVENT_AUSTRAL_HTTP_CONTROLLER = "austral.event.http.controller";
-  const string EVENT_AUSTRAL_HTTP_RESPONSE = "austral.event.http.response";
-  const string EVENT_AUSTRAL_HTTP_EXCEPTION = "austral.event.http.exception";
-  const string EVENT_AUSTRAL_HTTP_REQUEST_FINISH = "austral.event.http.request.finish";
+  public const string EVENT_AUSTRAL_HTTP_REQUEST_INITIALISE = 'austral.event.http.request.initialise';
+  public const string EVENT_AUSTRAL_HTTP_REQUEST = 'austral.event.http.request';
+  public const string EVENT_AUSTRAL_HTTP_CONTROLLER = 'austral.event.http.controller';
+  public const string EVENT_AUSTRAL_HTTP_RESPONSE = 'austral.event.http.response';
+  public const string EVENT_AUSTRAL_HTTP_EXCEPTION = 'austral.event.http.exception';
+  public const string EVENT_AUSTRAL_HTTP_REQUEST_FINISH = 'austral.event.http.request.finish';
 
   /**
    * FormEvent constructor.
-   *
    */
   public function __construct();
 
@@ -71,5 +71,4 @@ interface HttpEventInterface
    * @return $this
    */
   public function setKernelEvent(KernelEvent $kernelEvent): HttpEventInterface;
-
 }

@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Austral Http Bundle package.
  *
@@ -7,19 +8,18 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
- 
-namespace Austral\HttpBundle\Template\Interfaces;
 
+namespace Austral\HttpBundle\Template\Interfaces;
 
 /**
  * Austral Http Template Interface.
+ *
  * @template T of object
  *
  * @author Matthieu Beurel <matthieu@austral.dev>
  */
 interface HttpTemplateParametersInterface
 {
-
   /**
    * @return array<string, mixed>
    */
@@ -32,14 +32,15 @@ interface HttpTemplateParametersInterface
 
   /**
    * @param string|null $name
+   *
    * @return $this
    */
   public function setName(?string $name = null): self;
 
   /**
    * @param string $key
-   * @param mixed $value
-   * @param bool $merge
+   * @param mixed  $value
+   * @param bool   $merge
    *
    * @return $this
    */
@@ -61,6 +62,7 @@ interface HttpTemplateParametersInterface
 
   /**
    * Get parameters
+   *
    * @return array<string, mixed>
    */
   public function getParameters(): array;
@@ -69,7 +71,7 @@ interface HttpTemplateParametersInterface
    * Get parameters
    *
    * @param string $key
-   * @param mixed $default
+   * @param mixed  $default
    *
    * @return mixed
    */
@@ -84,6 +86,7 @@ interface HttpTemplateParametersInterface
 
   /**
    * Get path
+   *
    * @return string|null
    */
   public function getPath(): ?string;
@@ -94,5 +97,4 @@ interface HttpTemplateParametersInterface
    * @return $this
    */
   public function setPath(?string $path): HttpTemplateParametersInterface;
-
 }

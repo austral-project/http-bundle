@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Austral Http Bundle package.
  *
@@ -20,30 +21,26 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Symfony\Component\Security\Core\User\UserInterface;
 use Twig\Environment;
-
 
 /**
  * Austral Admin Controller Abstract.
+ *
  * @template T of object
  *
  * @implements HttpControllerInterface<T>
  *
  * @author Matthieu Beurel <matthieu@austral.dev>
+ *
  * @abstract
  */
 abstract class HttpController implements HttpControllerInterface
 {
-
   public function __construct(
-    #[Autowire(service: "service_container")] protected ContainerInterface $container,
-    #[Autowire(service: "router")] protected RouterInterface $router,
-    #[Autowire(service: "twig")] protected Environment $twig
-  )
-  {
-
+    #[Autowire(service: 'service_container')] protected ContainerInterface $container,
+    #[Autowire(service: 'router')] protected RouterInterface $router,
+    #[Autowire(service: 'twig')] protected Environment $twig
+  ) {
   }
 
   /**
@@ -52,34 +49,22 @@ abstract class HttpController implements HttpControllerInterface
   protected ?HttpHandlerInterface $handlerManager = null;
 
   /**
-   * @var TokenStorageInterface|null
-   */
-  protected ?TokenStorageInterface $tokenStorage = null;
-
-  /**
-   * @inheritDoc
+   * {@inheritDoc}
    */
   public function setContainer(ContainerInterface $container): self
   {
     $this->container = $container;
+
     return $this;
   }
 
   /**
-   * @inheritDoc
-   */
-  public function setTokenStorage(?TokenStorageInterface $tokenStorage = null): self
-  {
-    $this->tokenStorage = $tokenStorage;
-    return $this;
-  }
-
-  /**
-   * @inheritDoc
+   * {@inheritDoc}
    */
   public function setHandlerManager(HttpHandlerInterface $handlerManager): self
   {
     $this->handlerManager = $handlerManager;
+
     return $this;
   }
 
@@ -89,11 +74,12 @@ abstract class HttpController implements HttpControllerInterface
   protected ?HttpTemplateParametersInterface $templateParameters = null;
 
   /**
-   * @inheritDoc
+   * {@inheritDoc}
    */
   public function setTemplateParameters(?HttpTemplateParametersInterface $templateParameters = null): self
   {
     $this->templateParameters = $templateParameters;
+
     return $this;
   }
 
@@ -101,6 +87,7 @@ abstract class HttpController implements HttpControllerInterface
    * has
    *
    * @param string $id
+   *
    * @return bool
    */
   protected function has(string $id): bool
@@ -112,6 +99,7 @@ abstract class HttpController implements HttpControllerInterface
    * get
    *
    * @param string $id
+   *
    * @return object|null
    */
   protected function get(string $id): ?object
@@ -122,22 +110,15 @@ abstract class HttpController implements HttpControllerInterface
   /**
    * generateUrl
    *
-   * @param string $route
+   * @param string               $route
    * @param array<string, mixed> $parameters
-   * @param int $referenceType
+   * @param int                  $referenceType
+   *
    * @return string
    */
   protected function generateUrl(string $route, array $parameters = [], int $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH): string
   {
     return $this->router->generate($route, $parameters, $referenceType);
-  }
-
-  /**
-   * @return UserInterface|null
-   */
-  protected function getUser(): ?UserInterface
-  {
-    return $this->tokenStorage && $this->tokenStorage->getToken() ? $this->tokenStorage->getToken()->getUser() : null;
   }
 
   /**
@@ -151,9 +132,10 @@ abstract class HttpController implements HttpControllerInterface
   /**
    * redirectToRoute
    *
-   * @param string $route
+   * @param string               $route
    * @param array<string, mixed> $parameters
-   * @param int $status
+   * @param int                  $status
+   *
    * @return RedirectResponse
    */
   protected function redirectToRoute(string $route, array $parameters = [], int $status = 302): RedirectResponse
@@ -164,9 +146,11 @@ abstract class HttpController implements HttpControllerInterface
   /**
    * renderView
    *
-   * @param string $view
+   * @param string               $view
    * @param array<string, mixed> $parameters
+   *
    * @return string
+   *
    * @throws \Twig\Error\LoaderError
    * @throws \Twig\Error\RuntimeError
    * @throws \Twig\Error\SyntaxError
@@ -179,10 +163,12 @@ abstract class HttpController implements HttpControllerInterface
   /**
    * render
    *
-   * @param string $view
+   * @param string               $view
    * @param array<string, mixed> $parameters
-   * @param Response|null $response
+   * @param Response|null        $response
+   *
    * @return Response
+   *
    * @throws \Twig\Error\LoaderError
    * @throws \Twig\Error\RuntimeError
    * @throws \Twig\Error\SyntaxError
@@ -190,25 +176,27 @@ abstract class HttpController implements HttpControllerInterface
   protected function render(string $view, array $parameters = [], ?Response $response = null): Response
   {
     $content = $this->renderView($view, $parameters);
-    if (null === $response) {
+    if (null === $response)
+    {
       $response = new Response();
     }
     $response->setContent($content);
+
     return $response;
   }
 
   /**
    * json
    *
-   * @param string $data
-   * @param int $status
+   * @param mixed                $data
+   * @param int                  $status
    * @param array<string, mixed> $headers
-   * @param array<string, mixed> $context
+   * @param bool                 $json
+   *
    * @return JsonResponse
    */
-  protected function json(string $data, int $status = 200, array $headers = [], array $context = []): JsonResponse
+  protected function json(mixed $data, int $status = 200, array $headers = [], bool $json = false): JsonResponse
   {
-    return new JsonResponse($data, $status, $headers);
+    return new JsonResponse($data, $status, $headers, $json);
   }
-
 }

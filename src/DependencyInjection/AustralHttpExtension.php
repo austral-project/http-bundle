@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Austral Http Bundle package.
  *
@@ -15,18 +16,19 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 
-use \Exception;
-
 /**
  * Austral Http Extension.
+ *
  * @author Matthieu Beurel <matthieu@austral.dev>
+ *
  * @final
  */
 class AustralHttpExtension extends Extension
 {
   /**
    * {@inheritdoc}
-   * @throws Exception
+   *
+   * @throws \Exception
    */
   public function load(array $configs, ContainerBuilder $container): void
   {
@@ -40,28 +42,6 @@ class AustralHttpExtension extends Extension
     $loader = new YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
     $loader->load('parameters.yaml');
     $loader->load('services.yaml');
-    $loader->load('command.yaml');
-    $this->loadConfigToAustralBundle($container, $loader);
-  }
-
-  /**
-   * @param ContainerBuilder $container
-   * @param YamlFileLoader $loader
-   *
-   * @throws Exception
-   */
-  protected function loadConfigToAustralBundle(ContainerBuilder $container, YamlFileLoader $loader): void
-  {
-    $projectDir = $container->getParameter("kernel.project_dir");
-    $bundlesConfigPath = ($projectDir && is_string($projectDir) ? $projectDir : "")."/config/bundles.php";
-    if(file_exists($bundlesConfigPath))
-    {
-      $contents = require $bundlesConfigPath;
-      if(array_key_exists("Austral\AdminBundle\AustralAdminBundle", $contents))
-      {
-        $loader->load('austral_admin.yaml');
-      }
-    }
   }
 
   /**
@@ -71,5 +51,4 @@ class AustralHttpExtension extends Extension
   {
     return 'https://austral.app/schema/dic/austral_http';
   }
-
 }

@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the Austral Http Bundle package.
  *
@@ -18,16 +19,17 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 /**
  * Austral Http Event.
+ *
  * @template T of object
  *
  * @implements HttpEventInterface<T>
  *
  * @author Matthieu Beurel <matthieu@austral.dev>
+ *
  * @abstract
  */
 abstract class HttpEvent extends Event implements HttpEventInterface
 {
-
   /**
    * @var HttpHandlerInterface<T>|null
    */
@@ -45,7 +47,6 @@ abstract class HttpEvent extends Event implements HttpEventInterface
 
   /**
    * FormEvent constructor.
-   *
    */
   public function __construct()
   {
@@ -67,6 +68,7 @@ abstract class HttpEvent extends Event implements HttpEventInterface
   public function setHandler(HttpHandlerInterface $handler): self
   {
     $this->handler = $handler;
+
     return $this;
   }
 
@@ -86,6 +88,7 @@ abstract class HttpEvent extends Event implements HttpEventInterface
   public function setHttpRequest(HttpRequest $httpRequest): self
   {
     $this->httpRequest = $httpRequest;
+
     return $this;
   }
 
@@ -105,7 +108,7 @@ abstract class HttpEvent extends Event implements HttpEventInterface
   public function setKernelEvent(KernelEvent $kernelEvent): self
   {
     $this->kernelEvent = $kernelEvent;
+
     return $this;
   }
-
 }
