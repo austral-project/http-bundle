@@ -11,7 +11,10 @@
 
 namespace Austral\HttpBundle\Tests\DependencyInjection;
 
+use Austral\HttpBundle\Configuration\HttpConfiguration;
 use Austral\HttpBundle\DependencyInjection\AustralHttpExtension;
+use Austral\HttpBundle\Listener\HttpListener;
+use Austral\HttpBundle\Services\HttpRequest;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
@@ -21,9 +24,12 @@ final class AustralHttpExtensionTest extends TestCase
   {
     $container = $this->load([]);
 
-    self::assertTrue($container->hasDefinition('austral.http.listener'));
-    self::assertTrue($container->hasDefinition('austral.http.request'));
-    self::assertTrue($container->hasDefinition('austral.http.config'));
+    self::assertTrue($container->hasDefinition(HttpListener::class));
+    self::assertTrue($container->hasDefinition(HttpRequest::class));
+    self::assertTrue($container->hasDefinition(HttpConfiguration::class));
+    self::assertSame(HttpRequest::class, (string) $container->getAlias('austral.http.request'));
+    self::assertSame(HttpConfiguration::class, (string) $container->getAlias('austral.http.config'));
+    self::assertFalse($container->has('austral.http.listener'));
   }
 
   public function testLoadRegistersNoDomainService(): void

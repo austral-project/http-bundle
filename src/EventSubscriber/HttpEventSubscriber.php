@@ -15,9 +15,6 @@ use Austral\HttpBundle\Event\Interfaces\HttpEventInterface;
 use Austral\HttpBundle\EventSubscriber\Interfaces\HttpEventSubscriberInterface;
 use Austral\ToolsBundle\Configuration\ConfigurationInterface;
 use Austral\ToolsBundle\Services\Debug;
-use Doctrine\ORM\Query\QueryException;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
@@ -34,16 +31,12 @@ abstract class HttpEventSubscriber implements EventSubscriberInterface, HttpEven
   /**
    * HttpSubscriber constructor.
    *
-   * @param ContainerInterface     $container
    * @param ConfigurationInterface $configuration
    * @param Debug                  $debug
-   *
-   * @throws QueryException
    */
   public function __construct(
-    #[Autowire(service: 'service_container')] protected ContainerInterface $container,
-    #[Autowire(service: 'austral.http.config')] protected ConfigurationInterface $configuration,
-    #[Autowire(service: 'austral.tools.debug')] protected Debug $debug
+    protected ConfigurationInterface $configuration,
+    protected Debug $debug
   ) {
   }
 

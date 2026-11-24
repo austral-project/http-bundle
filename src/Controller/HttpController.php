@@ -14,8 +14,6 @@ namespace Austral\HttpBundle\Controller;
 use Austral\HttpBundle\Controller\Interfaces\HttpControllerInterface;
 use Austral\HttpBundle\Handler\Interfaces\HttpHandlerInterface;
 use Austral\HttpBundle\Template\Interfaces\HttpTemplateParametersInterface;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -37,9 +35,8 @@ use Twig\Environment;
 abstract class HttpController implements HttpControllerInterface
 {
   public function __construct(
-    #[Autowire(service: 'service_container')] protected ContainerInterface $container,
-    #[Autowire(service: 'router')] protected RouterInterface $router,
-    #[Autowire(service: 'twig')] protected Environment $twig
+    protected RouterInterface $router,
+    protected Environment $twig
   ) {
   }
 
@@ -47,16 +44,6 @@ abstract class HttpController implements HttpControllerInterface
    * @var HttpHandlerInterface<T>|null
    */
   protected ?HttpHandlerInterface $handlerManager = null;
-
-  /**
-   * {@inheritDoc}
-   */
-  public function setContainer(ContainerInterface $container): self
-  {
-    $this->container = $container;
-
-    return $this;
-  }
 
   /**
    * {@inheritDoc}
@@ -81,30 +68,6 @@ abstract class HttpController implements HttpControllerInterface
     $this->templateParameters = $templateParameters;
 
     return $this;
-  }
-
-  /**
-   * has
-   *
-   * @param string $id
-   *
-   * @return bool
-   */
-  protected function has(string $id): bool
-  {
-    return $this->container->has($id);
-  }
-
-  /**
-   * get
-   *
-   * @param string $id
-   *
-   * @return object|null
-   */
-  protected function get(string $id): ?object
-  {
-    return $this->container->get($id);
   }
 
   /**

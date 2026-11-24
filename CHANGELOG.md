@@ -8,12 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- `tests/DependencyInjection/ContainerTest.php`: compiles the container, creates every service, and checks the public alias and the tags of the listener.
+
 ### Changed
 
 - Sources moved to `src/` (PSR-4 `Austral\HttpBundle\` → `src/`).
-- **BREAKING** `HttpHandler` receives its services through the constructor (`ContainerInterface`, `EventDispatcherInterface`, `TranslatorInterface`, `RouterInterface`, `Debug`, autowired). The request is set with `setRequestStack()`.
-- **BREAKING** `HttpController` no longer uses `ContainerAwareTrait` (removed in Symfony 7): the constructor receives the container, the router and Twig.
-- **BREAKING** `HttpEventSubscriber` no longer receives `DomainsManagement` and no longer initialises the domains when it is built.
+- **BREAKING** `HttpHandler` receives its services through the constructor: `EventDispatcherInterface`, `TranslatorInterface`, `RouterInterface`, the kernel environment (`string $environment`, read by `isDevEnv()`) and `?Debug`. It no longer receives the service container. The request is set with `setRequestStack()`.
+- **BREAKING** `HttpController` no longer uses `ContainerAwareTrait` (removed in Symfony 7) nor the service container: the constructor receives the router and Twig.
+- **BREAKING** `HttpEventSubscriber` receives `ConfigurationInterface` and `Debug` through its constructor. It no longer receives the service container nor `DomainsManagement`, and no longer initialises the domains when it is built.
+- **BREAKING** Services are defined explicitly (no autowiring, no autoconfiguration). Service ids named after a class (`Austral\HttpBundle\…`) are private: use the public `austral.http.config` alias to get the configuration from the container. `austral.http.request` is a private alias, to reference in a service definition (`'@austral.http.request'`). Autowiring a class of the bundle in an application still works.
+- **BREAKING** The XML namespace of the bundle configuration is `https://austral.dev/schema/dic/austral_http` (it was `https://austral.app/schema/dic/austral_http`).
 - **BREAKING** `HttpHandler::setRedirectStatus()` takes an `int` (it took a `string`); `getRedirectStatus()` returns an `int`.
 - http-bundle no longer depends on security-bundle, form-bundle or admin-bundle.
 - **BREAKING** `compression_gzip.other` is replaced by `compression_gzip.default`, which applies to every request. The `admin` and `website` keys are read by admin-bundle and website-bundle.
@@ -35,6 +39,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **BREAKING** Methods removed from `HttpHandler` and `HttpHandlerInterface`: `setContainer()`, `getRequest()` / `setRequest()` (use `setRequestStack()`), `setDispatcher()`, `getEntityManager()`, `getFormFactory()` / `setFormFactory()`, `getUser()`, `isGranted()`, `getUserTabId()` / `setUserTabId()`.
 - **BREAKING** Methods removed from `HttpController`: `setTwig()`, `setTokenStorage()`, `getUser()`, `forward()`, `getRequest()`, `getSession()`, `getTranslate()`, `createNotFoundException()`, `createAccessDeniedException()`.
 - **BREAKING** `HttpEventSubscriber::setTwig()`.
+- **BREAKING** `HttpController::setContainer()`, `has()` and `get()`, and `HttpControllerInterface::setContainer()`: a controller receives the services that it uses through its constructor.
+- **BREAKING** The `austral.http.listener` alias: the listener is called by the event dispatcher, not fetched from the container. Its service id is `Austral\HttpBundle\Listener\HttpListener`.
 
 ## [3.1.2] - 2022-12-16
 

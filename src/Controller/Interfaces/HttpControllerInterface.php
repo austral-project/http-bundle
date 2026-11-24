@@ -13,7 +13,6 @@ namespace Austral\HttpBundle\Controller\Interfaces;
 
 use Austral\HttpBundle\Handler\Interfaces\HttpHandlerInterface;
 use Austral\HttpBundle\Template\Interfaces\HttpTemplateParametersInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Austral Http Controller Interface.
@@ -24,13 +23,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 interface HttpControllerInterface
 {
-  /**
-   * @param ContainerInterface $container
-   *
-   * @return $this
-   */
-  public function setContainer(ContainerInterface $container): self;
-
   /**
    * @param HttpHandlerInterface<T> $handlerManager
    *

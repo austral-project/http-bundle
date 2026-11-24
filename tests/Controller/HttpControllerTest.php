@@ -13,7 +13,6 @@ namespace Austral\HttpBundle\Tests\Controller;
 
 use Austral\HttpBundle\Tests\Fixtures\TestHttpController;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Twig\Environment;
 
@@ -38,7 +37,6 @@ final class HttpControllerTest extends TestCase
   private function createController(): TestHttpController
   {
     return new TestHttpController(
-      $this->createMock(ContainerInterface::class),
       $this->createMock(RouterInterface::class),
       $this->createMock(Environment::class)
     );

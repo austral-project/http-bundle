@@ -17,6 +17,41 @@ All `austral/*` packages must be upgraded to `^4.0` at the same time.
 
 ## Breaking changes
 
+### Services: explicit definitions, private class ids
+
+The services of the bundle are no longer autowired nor autoconfigured: each one is defined with its arguments and tags. As a result, the service ids named after a class are **private**.
+
+| Service | Id | Alias |
+|---------|----|-------|
+| Configuration | `Austral\HttpBundle\Configuration\HttpConfiguration` | `austral.http.config` (public) |
+| Current request helper | `Austral\HttpBundle\Services\HttpRequest` | `austral.http.request` (private) |
+| Kernel listener | `Austral\HttpBundle\Listener\HttpListener` | none: `austral.http.listener` is removed |
+
+Before:
+
+```php
+$httpRequest = $container->get('austral.http.request');
+```
+
+After: inject the service instead.
+
+```yaml
+App\Service\MyService:
+  arguments:
+    $httpRequest: '@austral.http.request'
+```
+
+Only `austral.http.config` can still be fetched from the container. Injecting a service is not affected: autowiring `Austral\HttpBundle\Services\HttpRequest` in a constructor of your application keeps working, and so does a reference to an alias in YAML.
+
+> **Warning:** a service of your application that decorates the listener by its 3.1 id (`decorates: austral.http.listener`) makes the container compilation fail. Decorate `Austral\HttpBundle\Listener\HttpListener` instead.
+
+The XML namespace of the bundle configuration changes. In an XML configuration file:
+
+```diff
+- xmlns:austral-http="https://austral.app/schema/dic/austral_http"
++ xmlns:austral-http="https://austral.dev/schema/dic/austral_http"
+```
+
 ### `compression_gzip`: `other` replaced by `default`
 
 `compression_gzip.default` applies to every request. admin-bundle and website-bundle override it for their own requests with the `admin` and `website` keys, and fall back to `default` when their key is not set. The `other` key is no longer used.
@@ -86,9 +121,21 @@ These abstract classes are extended by the handlers, controllers and subscribers
 
 | Class | 3.1 | 4.0 |
 |-------|-----|-----|
-| `HttpHandler` | `RequestStack, EventDispatcherInterface, TokenStorageInterface, ?Debug` | `ContainerInterface, EventDispatcherInterface, TranslatorInterface, RouterInterface, ?Debug` (autowired) |
-| `HttpController` | `?Environment $twig = null`, plus `ContainerAwareTrait` | `ContainerInterface, RouterInterface, Environment` (autowired) |
-| `HttpEventSubscriber` | `ContainerInterface, ConfigurationInterface, DomainsManagement, Debug` | `ContainerInterface, ConfigurationInterface, Debug` (autowired) |
+| `HttpHandler` | `RequestStack, EventDispatcherInterface, TokenStorageInterface, ?Debug` | `EventDispatcherInterface, TranslatorInterface, RouterInterface, string $environment, ?Debug` |
+| `HttpController` | `?Environment $twig = null`, plus `ContainerAwareTrait` | `RouterInterface, Environment` |
+| `HttpEventSubscriber` | `ContainerInterface, ConfigurationInterface, DomainsManagement, Debug` | `ConfigurationInterface, Debug` |
+
+None of these classes receives the service container any more. The subclass is a service of its bundle or of the application, and its definition passes these arguments explicitly, for example for a handler:
+
+```yaml
+App\Handler\MyHandler:
+  arguments:
+    $dispatcher:  '@event_dispatcher'
+    $translator:  '@translator'
+    $router:      '@router'
+    $environment: '%kernel.environment%'
+    $debug:       '@austral.tools.debug'
+```
 
 A subclass that declares its own constructor must call `parent::__construct()` with the new arguments. The request of a handler is now set with `setRequestStack(RequestStack $requestStack)`.
 
@@ -103,7 +150,9 @@ A subclass that declares its own constructor must call `parent::__construct()` w
 | | `getDomainsManagement()`, `setDomainsManagement()` | inject `DomainsManagement` (domain-bundle) |
 | | `getUser()`, `isGranted()` | inject `TokenStorageInterface` / `AuthorizationCheckerInterface` (Symfony Security) |
 | | `getUserTabId()`, `setUserTabId()`, `getFormFactory()`, `setFormFactory()`, `getEntityManager()` | none in http-bundle: the handler that needs them declares them |
-| `HttpController` | `setTwig()`, `setTokenStorage()` | constructor |
+| `HttpController`, `HttpControllerInterface` | `setContainer()` | none: inject the services through the constructor |
+| `HttpController` | `has()`, `get()` (read the service container) | inject the services through the constructor |
+| | `setTwig()`, `setTokenStorage()` | constructor |
 | | `getUser()`, `getRequest()`, `getSession()`, `getTranslate()`, `forward()`, `createNotFoundException()`, `createAccessDeniedException()` | none in http-bundle: inject the Symfony service you need |
 | `HttpEventSubscriber` | `setTwig()` | none |
 

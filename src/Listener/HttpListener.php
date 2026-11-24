@@ -16,7 +16,6 @@ use Austral\HttpBundle\Controller\Interfaces\HttpControllerInterface;
 use Austral\HttpBundle\Event\Interfaces\HttpEventInterface;
 use Austral\HttpBundle\Services\HttpRequest;
 use Austral\ToolsBundle\Services\Debug;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\ParameterBag;
@@ -51,10 +50,10 @@ class HttpListener
    * @param Debug                    $debug
    */
   public function __construct(
-    #[Autowire(service: 'event_dispatcher')] protected EventDispatcherInterface $eventDispatcher,
-    #[Autowire(service: 'austral.http.config')] protected HttpConfiguration $configuration,
-    #[Autowire(service: 'austral.http.request')] protected HttpRequest $httpRequest,
-    #[Autowire(service: 'austral.tools.debug')] protected Debug $debug
+    protected EventDispatcherInterface $eventDispatcher,
+    protected HttpConfiguration $configuration,
+    protected HttpRequest $httpRequest,
+    protected Debug $debug
   ) {
   }
 

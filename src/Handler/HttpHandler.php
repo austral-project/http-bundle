@@ -14,8 +14,6 @@ namespace Austral\HttpBundle\Handler;
 use Austral\HttpBundle\Handler\Interfaces\HttpHandlerInterface;
 use Austral\HttpBundle\Template\Interfaces\HttpTemplateParametersInterface;
 use Austral\ToolsBundle\Services\Debug;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -72,18 +70,18 @@ abstract class HttpHandler implements HttpHandlerInterface
   /**
    * Handler constructor.
    *
-   * @param ContainerInterface       $container
    * @param EventDispatcherInterface $dispatcher
    * @param TranslatorInterface      $translator
    * @param RouterInterface          $router
+   * @param string                   $environment
    * @param Debug|null               $debug
    */
   public function __construct(
-    #[Autowire(service: 'service_container')] protected ContainerInterface $container,
-    #[Autowire(service: 'event_dispatcher')] protected EventDispatcherInterface $dispatcher,
-    #[Autowire(service: 'translator')] protected TranslatorInterface $translator,
-    #[Autowire(service: 'router')] protected RouterInterface $router,
-    #[Autowire(service: 'austral.tools.debug')] protected ?Debug $debug,
+    protected EventDispatcherInterface $dispatcher,
+    protected TranslatorInterface $translator,
+    protected RouterInterface $router,
+    protected string $environment,
+    protected ?Debug $debug,
   ) {
   }
 
@@ -234,6 +232,6 @@ abstract class HttpHandler implements HttpHandlerInterface
    */
   public function isDevEnv(): bool
   {
-    return 'dev' === $this->container->getParameter('kernel.environment');
+    return 'dev' === $this->environment;
   }
 }
