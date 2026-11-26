@@ -88,6 +88,8 @@ interface HttpHandlerInterface extends ResetInterface
    * @param string $message
    *
    * @return void
+   *
+   * @throws NotFoundHttpException always
    */
   public function pageNotFound(string $message = 'The page not found !!!!'): void;
 
