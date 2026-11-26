@@ -13,15 +13,19 @@ namespace Austral\HttpBundle\Services;
 
 use Austral\HttpBundle\Configuration\HttpConfiguration;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Contracts\Service\ResetInterface;
 
 /**
  * Austral Request.
+ *
+ * State of the current main request (request, language, compression), set by the HttpListener and reset at the
+ * start of each main request and by kernel.reset.
  *
  * @template T of object
  *
  * @author Matthieu Beurel <matthieu@austral.dev>
  */
-class HttpRequest
+class HttpRequest implements ResetInterface
 {
   /**
    * @var HttpConfiguration
@@ -49,7 +53,11 @@ class HttpRequest
   protected bool $compressionGzipEnabled = false;
 
   /**
+   * __construct
+   *
    * @param HttpConfiguration $httpConfiguration
+   *
+   * @return void
    */
   public function __construct(HttpConfiguration $httpConfiguration)
   {
@@ -57,6 +65,8 @@ class HttpRequest
   }
 
   /**
+   * getLanguage
+   *
    * @return string
    */
   public function getLanguage(): string
@@ -65,6 +75,8 @@ class HttpRequest
   }
 
   /**
+   * getDomainEnv
+   *
    * @return string|null
    */
   public function getDomainEnv(): ?string
@@ -73,6 +85,8 @@ class HttpRequest
   }
 
   /**
+   * setLanguage
+   *
    * @param string|null $language
    *
    * @return $this
@@ -95,6 +109,8 @@ class HttpRequest
   }
 
   /**
+   * getRequest
+   *
    * @return Request|null
    */
   public function getRequest(): ?Request
@@ -103,6 +119,8 @@ class HttpRequest
   }
 
   /**
+   * setRequest
+   *
    * @param Request|null $request
    *
    * @return $this
@@ -115,18 +133,8 @@ class HttpRequest
   }
 
   /**
-   * @param Request|null $request
+   * getIsCompressionGzipEnabled
    *
-   * @return $this
-   */
-  public function setTokenStorage(?Request $request): HttpRequest
-  {
-    $this->request = $request;
-
-    return $this;
-  }
-
-  /**
    * @return bool
    */
   public function getIsCompressionGzipEnabled(): bool
@@ -135,6 +143,8 @@ class HttpRequest
   }
 
   /**
+   * setCompressionGzipEnabled
+   *
    * @param bool $compressionGzipEnabled
    *
    * @return $this
@@ -144,5 +154,15 @@ class HttpRequest
     $this->compressionGzipEnabled = $compressionGzipEnabled;
 
     return $this;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public function reset(): void
+  {
+    $this->language = null;
+    $this->request = null;
+    $this->compressionGzipEnabled = false;
   }
 }

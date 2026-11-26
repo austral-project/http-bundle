@@ -133,6 +133,16 @@ final class ContainerTest extends TestCase
     ], $tags);
   }
 
+  public function testTheServicesWithTheStateOfARequestAreReset(): void
+  {
+    $container = self::loadExtension();
+
+    foreach ([HttpListener::class, HttpRequest::class] as $id)
+    {
+      self::assertSame([['method' => 'reset']], $container->getDefinition($id)->getTag('kernel.reset'), sprintf('"%s" must be reset between two requests.', $id));
+    }
+  }
+
   /**
    * The services that the bundle needs from the application (event dispatcher, tools-bundle)
    * are added as minimal definitions.

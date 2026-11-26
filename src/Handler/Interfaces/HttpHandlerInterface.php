@@ -13,34 +13,43 @@ namespace Austral\HttpBundle\Handler\Interfaces;
 
 use Austral\HttpBundle\Template\Interfaces\HttpTemplateParametersInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Contracts\Service\ResetInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Austral Http Handler Interface.
  *
+ * A handler is a shared service: it reads the request from the RequestStack when it is called and forgets the
+ * state of a request (template parameters, handler method, redirection) in reset().
+ *
  * @template T of object
  *
  * @author Matthieu Beurel <matthieu@austral.dev>
  */
-interface HttpHandlerInterface
+interface HttpHandlerInterface extends ResetInterface
 {
   /**
-   * @param RequestStack $request
+   * getRequest
+   * The current request of the RequestStack.
    *
-   * @return $this
+   * @return Request|null
    */
-  public function setRequestStack(RequestStack $request): self;
+  public function getRequest(): ?Request;
 
   /**
+   * getDispatcher
+   *
    * @return EventDispatcherInterface
    */
   public function getDispatcher(): EventDispatcherInterface;
 
   /**
+   * executeHandlerMethod
+   *
    * @param mixed ...$args
    *
    * @return void
@@ -48,11 +57,15 @@ interface HttpHandlerInterface
   public function executeHandlerMethod(mixed ...$args): void;
 
   /**
+   * getTemplateParameters
+   *
    * @return HttpTemplateParametersInterface<T>|null
    */
   public function getTemplateParameters(): ?HttpTemplateParametersInterface;
 
   /**
+   * setTemplateParameters
+   *
    * @param HttpTemplateParametersInterface<T> $templateParameters
    *
    * @return $this
@@ -60,6 +73,8 @@ interface HttpHandlerInterface
   public function setTemplateParameters(HttpTemplateParametersInterface $templateParameters): self;
 
   /**
+   * createNotFoundException
+   *
    * @param string          $message
    * @param \Throwable|null $previous
    *
@@ -68,11 +83,17 @@ interface HttpHandlerInterface
   public function createNotFoundException(string $message = 'Not Found', ?\Throwable $previous = null): NotFoundHttpException;
 
   /**
+   * pageNotFound
+   *
    * @param string $message
+   *
+   * @return void
    */
   public function pageNotFound(string $message = 'The page not found !!!!'): void;
 
   /**
+   * generateUrl
+   *
    * @param string                    $route
    * @param array<string, int|string> $parameters
    * @param int                       $referenceType
@@ -83,6 +104,8 @@ interface HttpHandlerInterface
   public function generateUrl(string $route, array $parameters = [], int $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH, ?string $env = null): string;
 
   /**
+   * addFlash
+   *
    * @param string $type
    * @param string $message
    *
@@ -93,21 +116,29 @@ interface HttpHandlerInterface
   public function addFlash(string $type, string $message): void;
 
   /**
+   * getSession
+   *
    * @return SessionInterface|null
    */
   public function getSession(): ?SessionInterface;
 
   /**
+   * getTranslate
+   *
    * @return TranslatorInterface
    */
   public function getTranslate(): TranslatorInterface;
 
   /**
+   * getRedirectUrl
+   *
    * @return string|null
    */
   public function getRedirectUrl(): ?string;
 
   /**
+   * setRedirectUrl
+   *
    * @param string $redirectUrl
    *
    * @return $this
@@ -115,11 +146,15 @@ interface HttpHandlerInterface
   public function setRedirectUrl(string $redirectUrl): self;
 
   /**
+   * getRedirectStatus
+   *
    * @return int
    */
   public function getRedirectStatus(): int;
 
   /**
+   * setRedirectStatus
+   *
    * @param int $redirectStatus
    *
    * @return $this
@@ -127,6 +162,8 @@ interface HttpHandlerInterface
   public function setRedirectStatus(int $redirectStatus): self;
 
   /**
+   * isDevEnv
+   *
    * @return bool
    */
   public function isDevEnv(): bool;

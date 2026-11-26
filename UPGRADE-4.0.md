@@ -121,7 +121,7 @@ These abstract classes are extended by the handlers, controllers and subscribers
 
 | Class | 3.1 | 4.0 |
 |-------|-----|-----|
-| `HttpHandler` | `RequestStack, EventDispatcherInterface, TokenStorageInterface, ?Debug` | `EventDispatcherInterface, TranslatorInterface, RouterInterface, string $environment, ?Debug` |
+| `HttpHandler` | `RequestStack, EventDispatcherInterface, TokenStorageInterface, ?Debug` | `EventDispatcherInterface, TranslatorInterface, RouterInterface, RequestStack, string $environment, ?Debug` |
 | `HttpController` | `?Environment $twig = null`, plus `ContainerAwareTrait` | `RouterInterface, Environment` |
 | `HttpEventSubscriber` | `ContainerInterface, ConfigurationInterface, DomainsManagement, Debug` | `ConfigurationInterface, Debug` |
 
@@ -130,14 +130,44 @@ None of these classes receives the service container any more. The subclass is a
 ```yaml
 App\Handler\MyHandler:
   arguments:
-    $dispatcher:  '@event_dispatcher'
-    $translator:  '@translator'
-    $router:      '@router'
-    $environment: '%kernel.environment%'
-    $debug:       '@austral.tools.debug'
+    $dispatcher:   '@event_dispatcher'
+    $translator:   '@translator'
+    $router:       '@router'
+    $requestStack: '@request_stack'
+    $environment:  '%kernel.environment%'
+    $debug:        '@austral.tools.debug'
+  tags:
+    - { name: kernel.reset, method: reset }
 ```
 
-A subclass that declares its own constructor must call `parent::__construct()` with the new arguments. The request of a handler is now set with `setRequestStack(RequestStack $requestStack)`.
+A subclass that declares its own constructor must call `parent::__construct()` with the new arguments.
+
+#### A handler keeps no request
+
+A handler is a shared service. It no longer stores the request nor the session: `getRequest()` and `getSession()` read them from the `RequestStack` each time they are called. Replace the 3.1 properties:
+
+```diff
+- $this->request->query->get('page');
++ $this->getRequest()?->query->get('page');
+- $this->session->set('key', $value);
++ $this->getSession()?->set('key', $value);
+```
+
+`HttpHandlerInterface` extends `Symfony\Contracts\Service\ResetInterface`. `HttpHandler::reset()` forgets the template parameters, the handler method and the redirection; a subclass that keeps its own state of a request overrides it and calls `parent::reset()`:
+
+```php
+public function reset(): void
+{
+  parent::reset();
+  $this->module = null;
+}
+```
+
+Tag the service of the handler with `kernel.reset` (see the definition above): Symfony then resets it between two requests of a long-running process (FrankenPHP, RoadRunner, Messenger worker).
+
+#### Main request only
+
+`HttpListener` dispatches the `austral.http.*` events for the main request only. A sub-request (`render(controller())`, error page) no longer replaces the HTTP event, the request nor the language of the main request, even when its route has an `_austral_http_event` attribute. The class given in `_austral_http_event` must implement `HttpEventInterface`.
 
 `HttpEventSubscriber` no longer initialises the domains. A subscriber that needs them injects `Austral\DomainBundle\Services\DomainsManagement` itself (see "Domain management moved to `austral/domain-bundle`").
 
@@ -145,7 +175,8 @@ A subclass that declares its own constructor must call `parent::__construct()` w
 
 | Class | Removed | Replacement |
 |-------|---------|-------------|
-| `HttpHandler`, `HttpHandlerInterface` | `getRequest()`, `setRequest()` | `setRequestStack()` |
+| `HttpHandler`, `HttpHandlerInterface` | `setRequest()` (and the 4.0 development `setRequestStack()`) | `RequestStack` given to the constructor, read by `getRequest()` |
+| | `$request`, `$session` properties | `getRequest()`, `getSession()` |
 | | `setContainer()`, `setDispatcher()` | constructor |
 | | `getDomainsManagement()`, `setDomainsManagement()` | inject `DomainsManagement` (domain-bundle) |
 | | `getUser()`, `isGranted()` | inject `TokenStorageInterface` / `AuthorizationCheckerInterface` (Symfony Security) |
@@ -155,6 +186,7 @@ A subclass that declares its own constructor must call `parent::__construct()` w
 | | `setTwig()`, `setTokenStorage()` | constructor |
 | | `getUser()`, `getRequest()`, `getSession()`, `getTranslate()`, `forward()`, `createNotFoundException()`, `createAccessDeniedException()` | none in http-bundle: inject the Symfony service you need |
 | `HttpEventSubscriber` | `setTwig()` | none |
+| `HttpRequest` | `setTokenStorage()` (set the request) | `setRequest()` |
 
 #### Changed signatures
 

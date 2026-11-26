@@ -25,6 +25,7 @@
     "symfony/dependency-injection": "^7.4",
     "symfony/event-dispatcher-contracts": "^3.5",
     "symfony/routing": "^7.4",
+    "symfony/service-contracts": "^3.5",
     "symfony/event-dispatcher": "^7.4",
     "symfony/http-kernel": "^7.4",
     "symfony/http-foundation": "^7.4",

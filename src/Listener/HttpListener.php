@@ -26,15 +26,21 @@ use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
+use Symfony\Contracts\Service\ResetInterface;
 
 /**
  * Austral Http Listener.
+ *
+ * Dispatches the Austral HTTP events (austral.http.*) of the main request when its route has the
+ * _austral_http_event attribute. The state of a request (HTTP event, HttpRequest) is reset at the start of each
+ * main request and by kernel.reset (long-running process), and a sub-request never replaces the HTTP event of
+ * the main request.
  *
  * @template T of object
  *
  * @author Matthieu Beurel <matthieu@austral.dev>
  */
-class HttpListener
+class HttpListener implements ResetInterface
 {
   /**
    * @var HttpEventInterface<T>|null
@@ -42,12 +48,14 @@ class HttpListener
   protected ?HttpEventInterface $httpEvent = null;
 
   /**
-   * ControllerListener constructor.
+   * __construct
    *
    * @param EventDispatcherInterface $eventDispatcher
    * @param HttpConfiguration        $configuration
    * @param HttpRequest<T>           $httpRequest
    * @param Debug                    $debug
+   *
+   * @return void
    */
   public function __construct(
     protected EventDispatcherInterface $eventDispatcher,
@@ -58,11 +66,23 @@ class HttpListener
   }
 
   /**
+   * onRequestInitialise
+   * Resets the state of the previous request, copies a JSON body in the request parameters and, for the main
+   * request only, creates the HTTP event of the route, dispatches austral.http.request.initialise and sets the
+   * language of the request.
+   *
    * @param RequestEvent $event
+   *
+   * @return void
    */
   public function onRequestInitialise(RequestEvent $event): void
   {
     $this->debug->stopWatchStart('init-request', 'austral.http.listener');
+
+    if ($event->isMainRequest())
+    {
+      $this->reset();
+    }
 
     /** @var ParameterBag $requestAttributes */
     $requestAttributes = $event->getRequest()->attributes;
@@ -81,21 +101,22 @@ class HttpListener
       }
     }
 
+    if (!$event->isMainRequest())
+    {
+      $this->debug->stopWatchStop('init-request');
+
+      return;
+    }
+
     $this->httpRequest->setRequest($event->getRequest());
     $this->httpRequest->setCompressionGzipEnabled((bool) $this->configuration->get('compression_gzip.default', true));
 
-    /** @var class-string<HttpEventInterface<T>>|null $httpEventName */
     $httpEventName = $requestAttributes->get('_austral_http_event');
-    if ($httpEventName)
+    if (is_string($httpEventName) && is_a($httpEventName, HttpEventInterface::class, true))
     {
-      if (class_exists($httpEventName))
-      {
-        $this->httpEvent = new $httpEventName();
-      }
-    }
-
-    if ($this->httpEvent)
-    {
+      /** @var HttpEventInterface<T> $httpEvent */
+      $httpEvent = new $httpEventName();
+      $this->httpEvent = $httpEvent;
       $this->httpEvent->setKernelEvent($event);
       $this->httpEvent->setHttpRequest($this->httpRequest);
       $this->eventDispatcher->dispatch($this->httpEvent, HttpEventInterface::EVENT_AUSTRAL_HTTP_REQUEST_INITIALISE);
@@ -113,14 +134,19 @@ class HttpListener
   }
 
   /**
+   * onRequest
+   * Dispatches austral.http.request for the main request.
+   *
    * @param RequestEvent $event
+   *
+   * @return void
    */
   public function onRequest(RequestEvent $event): void
   {
-    $this->httpRequest->setRequest($event->getRequest());
     $this->debug->stopWatchStart('request', 'austral.http.listener');
     if ($this->httpEvent && $event->isMainRequest())
     {
+      $this->httpRequest->setRequest($event->getRequest());
       $this->httpEvent->setKernelEvent($event);
       $this->eventDispatcher->dispatch($this->httpEvent, $this->httpEvent::EVENT_AUSTRAL_HTTP_REQUEST);
     }
@@ -128,7 +154,11 @@ class HttpListener
   }
 
   /**
+   * onException
+   *
    * @param ExceptionEvent $event
+   *
+   * @return void
    */
   public function onException(ExceptionEvent $event): void
   {
@@ -142,7 +172,11 @@ class HttpListener
   }
 
   /**
+   * onController
+   *
    * @param ControllerEvent $controllerEvent
+   *
+   * @return void
    */
   public function onController(ControllerEvent $controllerEvent): void
   {
@@ -166,7 +200,11 @@ class HttpListener
   }
 
   /**
+   * onResponse
+   *
    * @param ResponseEvent $responseEvent
+   *
+   * @return void
    */
   public function onResponse(ResponseEvent $responseEvent): void
   {
@@ -205,7 +243,11 @@ class HttpListener
   }
 
   /**
+   * onFinishRequest
+   *
    * @param FinishRequestEvent $finishRequestEvent
+   *
+   * @return void
    */
   public function onFinishRequest(FinishRequestEvent $finishRequestEvent): void
   {
@@ -219,6 +261,17 @@ class HttpListener
   }
 
   /**
+   * {@inheritDoc}
+   */
+  public function reset(): void
+  {
+    $this->httpEvent = null;
+    $this->httpRequest->reset();
+  }
+
+  /**
+   * getHttpController
+   *
    * @param array<int, mixed> $controllers
    *
    * @return HttpControllerInterface<T>|null

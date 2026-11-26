@@ -60,6 +60,18 @@ final class HttpRequestTest extends TestCase
     self::assertTrue($httpRequest->getIsCompressionGzipEnabled());
   }
 
+  public function testResetForgetsTheStateOfTheRequest(): void
+  {
+    $httpRequest = $this->createHttpRequest(['default_language' => 'fr']);
+    $httpRequest->setLanguage('en')->setRequest(Request::create('/'))->setCompressionGzipEnabled(true);
+
+    $httpRequest->reset();
+
+    self::assertSame('fr', $httpRequest->getLanguage());
+    self::assertNull($httpRequest->getRequest());
+    self::assertFalse($httpRequest->getIsCompressionGzipEnabled());
+  }
+
   /**
    * @param array<string, mixed> $config
    *

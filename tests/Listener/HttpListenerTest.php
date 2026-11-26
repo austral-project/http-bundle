@@ -119,6 +119,76 @@ final class HttpListenerTest extends TestCase
     self::assertSame([], $this->dispatched);
   }
 
+  public function testInitialiseIgnoresAClassThatIsNotAnHttpEvent(): void
+  {
+    $request = Request::create('/');
+    $request->attributes->set('_austral_http_event', \stdClass::class);
+
+    $this->createListener()->onRequestInitialise($this->createRequestEvent($request));
+
+    self::assertSame([], $this->dispatched);
+  }
+
+  public function testTheHttpEventOfAPreviousRequestIsNotReused(): void
+  {
+    $listener = $this->createListener(['compression_gzip' => ['default' => true]]);
+    $listener->onRequestInitialise($this->createRequestEvent($this->createAustralRequest('gzip')));
+
+    $request = Request::create('/', 'GET', [], [], [], ['HTTP_ACCEPT_ENCODING' => 'gzip']);
+    $listener->onRequestInitialise($this->createRequestEvent($request));
+    $response = new Response('<p>Austral</p>');
+    $listener->onResponse($this->createResponseEvent($request, $response));
+
+    self::assertSame([HttpEventInterface::EVENT_AUSTRAL_HTTP_REQUEST_INITIALISE], $this->dispatched, 'The second request has no HTTP event.');
+    self::assertNull($response->headers->get('Content-encoding'));
+  }
+
+  public function testTheLanguageOfAPreviousRequestIsNotReused(): void
+  {
+    $listener = $this->createListener(['default_language' => 'en']);
+    $first = Request::create('/fr/');
+    $first->attributes->set('_locale', 'fr');
+    $listener->onRequestInitialise($this->createRequestEvent($first));
+
+    $second = Request::create('/');
+    $listener->onRequestInitialise($this->createRequestEvent($second));
+
+    self::assertSame('en', $second->getLocale());
+    self::assertSame($second, $this->httpRequest->getRequest());
+  }
+
+  public function testASubRequestDoesNotReplaceTheHttpEventNorTheRequest(): void
+  {
+    $listener = $this->createListener(['default_language' => 'en']);
+    $main = $this->createAustralRequest('gzip');
+    $listener->onRequestInitialise($this->createRequestEvent($main));
+
+    $sub = Request::create('/_fragment');
+    $sub->attributes->set('_austral_http_event', TestHttpEvent::class);
+    $sub->attributes->set('_locale', 'fr');
+    $listener->onRequestInitialise($this->createRequestEvent($sub, HttpKernelInterface::SUB_REQUEST));
+    $listener->onRequest($this->createRequestEvent($sub, HttpKernelInterface::SUB_REQUEST));
+
+    self::assertSame([HttpEventInterface::EVENT_AUSTRAL_HTTP_REQUEST_INITIALISE], $this->dispatched, 'Only the main request dispatches the HTTP events.');
+    self::assertSame($main, $this->httpRequest->getRequest());
+    self::assertSame('en', $this->httpRequest->getLanguage());
+  }
+
+  public function testResetForgetsTheHttpEventAndTheRequest(): void
+  {
+    $listener = $this->createListener(['compression_gzip' => ['default' => true]]);
+    $request = $this->createAustralRequest('gzip');
+    $listener->onRequestInitialise($this->createRequestEvent($request));
+
+    $listener->reset();
+    $response = new Response('<p>Austral</p>');
+    $listener->onResponse($this->createResponseEvent($request, $response));
+
+    self::assertNotContains(HttpEventInterface::EVENT_AUSTRAL_HTTP_RESPONSE, $this->dispatched);
+    self::assertNull($response->headers->get('Content-encoding'));
+    self::assertNull($this->httpRequest->getRequest());
+  }
+
   public function testResponseIsCompressedWithGzipWhenTheClientAcceptsIt(): void
   {
     $listener = $this->createListener(['compression_gzip' => ['default' => true]]);
@@ -197,9 +267,9 @@ final class HttpListenerTest extends TestCase
     return $request;
   }
 
-  private function createRequestEvent(Request $request): RequestEvent
+  private function createRequestEvent(Request $request, int $requestType = HttpKernelInterface::MAIN_REQUEST): RequestEvent
   {
-    return new RequestEvent($this->createMock(HttpKernelInterface::class), $request, HttpKernelInterface::MAIN_REQUEST);
+    return new RequestEvent($this->createMock(HttpKernelInterface::class), $request, $requestType);
   }
 
   private function createResponseEvent(Request $request, Response $response): ResponseEvent

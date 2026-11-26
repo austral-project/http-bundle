@@ -55,6 +55,8 @@ The domains (multi-site) are managed by [austral/domain-bundle](https://github.c
 
 A route opts in to the Austral HTTP events with the `_austral_http_event` attribute, set to the class of the event to dispatch (an `HttpEventInterface`). The upper bundles (admin, website) subscribe to these events through `HttpEventSubscriber`.
 
+The events are dispatched for the main request only. The handler of a bundle (`HttpHandler`) is a shared service: it reads the request from the `RequestStack` and is tagged `kernel.reset`, so that nothing of a request is kept for the next one in a long-running process.
+
 ## Documentation
 
 The full documentation is available at https://austral.dev.

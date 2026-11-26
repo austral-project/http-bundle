@@ -14,11 +14,14 @@ services:
       - { name: kernel.event_listener, event: kernel.response, method: onResponse, priority: -2048 }
       - { name: kernel.event_listener, event: kernel.exception, method: onException, priority: 2048 }
       - { name: kernel.event_listener, event: kernel.finish_request, method: onFinishRequest }
+      - { name: kernel.reset, method: reset }
 
 ##### Http Services
   Austral\HttpBundle\Services\HttpRequest:
     arguments:
       $httpConfiguration: "@austral.http.config"
+    tags:
+      - { name: kernel.reset, method: reset }
 
   austral.http.request:
     alias:          Austral\HttpBundle\Services\HttpRequest

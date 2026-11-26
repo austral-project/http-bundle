@@ -25,7 +25,11 @@ use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
- * Austral AdminHandler Abstract.
+ * Austral Http Handler Abstract.
+ *
+ * Shared service without state of the request: the request and the session are read from the RequestStack when
+ * they are used; the template parameters, the handler method and the redirection are forgotten by reset()
+ * (kernel.reset tag on the service of the handler).
  *
  * @template T of object
  *
@@ -37,16 +41,6 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  */
 abstract class HttpHandler implements HttpHandlerInterface
 {
-  /**
-   * @var Request|null
-   */
-  protected ?Request $request = null;
-
-  /**
-   * @var SessionInterface|null
-   */
-  protected ?SessionInterface $session = null;
-
   /**
    * @var HttpTemplateParametersInterface<T>|null
    */
@@ -68,18 +62,22 @@ abstract class HttpHandler implements HttpHandlerInterface
   protected int $redirectStatus = 301;
 
   /**
-   * Handler constructor.
+   * __construct
    *
    * @param EventDispatcherInterface $dispatcher
    * @param TranslatorInterface      $translator
    * @param RouterInterface          $router
+   * @param RequestStack             $requestStack
    * @param string                   $environment
    * @param Debug|null               $debug
+   *
+   * @return void
    */
   public function __construct(
     protected EventDispatcherInterface $dispatcher,
     protected TranslatorInterface $translator,
     protected RouterInterface $router,
+    protected RequestStack $requestStack,
     protected string $environment,
     protected ?Debug $debug,
   ) {
@@ -88,12 +86,9 @@ abstract class HttpHandler implements HttpHandlerInterface
   /**
    * {@inheritDoc}
    */
-  public function setRequestStack(RequestStack $request): self
+  public function getRequest(): ?Request
   {
-    $this->request = $request->getCurrentRequest();
-    $this->session = $this->request?->getSession();
-
-    return $this;
+    return $this->requestStack->getCurrentRequest();
   }
 
   /**
@@ -165,13 +160,14 @@ abstract class HttpHandler implements HttpHandlerInterface
    */
   public function addFlash(string $type, string $message): void
   {
-    if (!$this->session)
+    $session = $this->getSession();
+    if (!$session)
     {
       throw new \LogicException('You can not use the addFlash method if sessions are disabled. Enable them in "config/packages/framework.yaml".');
     }
-    if ($this->session instanceof Session)
+    if ($session instanceof Session)
     {
-      $this->session->getFlashBag()->add($type, $message);
+      $session->getFlashBag()->add($type, $message);
     }
   }
 
@@ -180,7 +176,9 @@ abstract class HttpHandler implements HttpHandlerInterface
    */
   public function getSession(): ?SessionInterface
   {
-    return $this->session;
+    $request = $this->getRequest();
+
+    return $request?->hasSession() ? $request->getSession() : null;
   }
 
   /**
@@ -233,5 +231,16 @@ abstract class HttpHandler implements HttpHandlerInterface
   public function isDevEnv(): bool
   {
     return 'dev' === $this->environment;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public function reset(): void
+  {
+    $this->templateParameters = null;
+    $this->handlerMethod = null;
+    $this->redirectUrl = null;
+    $this->redirectStatus = 301;
   }
 }
