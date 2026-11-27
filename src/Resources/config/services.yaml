@@ -26,6 +26,21 @@ services:
   austral.http.request:
     alias:          Austral\HttpBundle\Services\HttpRequest
 
+##### Content Security Policy
+  Austral\HttpBundle\Services\CspNonce:
+    tags:
+      - { name: kernel.reset, method: reset }
+
+  austral.http.csp_nonce:
+    alias:          Austral\HttpBundle\Services\CspNonce
+    public:         true
+
+  Austral\HttpBundle\Twig\CspExtension:
+    arguments:
+      $cspNonce:          '@Austral\HttpBundle\Services\CspNonce'
+    tags:
+      - { name: twig.extension }
+
 ##### Configuration
   Austral\HttpBundle\Configuration\HttpConfiguration:
     arguments:

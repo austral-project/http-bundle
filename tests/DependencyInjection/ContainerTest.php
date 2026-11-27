@@ -14,7 +14,9 @@ namespace Austral\HttpBundle\Tests\DependencyInjection;
 use Austral\HttpBundle\Configuration\HttpConfiguration;
 use Austral\HttpBundle\DependencyInjection\AustralHttpExtension;
 use Austral\HttpBundle\Listener\HttpListener;
+use Austral\HttpBundle\Services\CspNonce;
 use Austral\HttpBundle\Services\HttpRequest;
+use Austral\HttpBundle\Twig\CspExtension;
 use Austral\ToolsBundle\Services\Debug;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -35,6 +37,7 @@ final class ContainerTest extends TestCase
    */
   private const array PUBLIC_ALIASES = [
     'austral.http.config',
+    'austral.http.csp_nonce',
   ];
 
   /**
@@ -45,8 +48,11 @@ final class ContainerTest extends TestCase
     yield HttpListener::class => [HttpListener::class, HttpListener::class];
     yield HttpRequest::class => [HttpRequest::class, HttpRequest::class];
     yield HttpConfiguration::class => [HttpConfiguration::class, HttpConfiguration::class];
+    yield CspNonce::class => [CspNonce::class, CspNonce::class];
+    yield CspExtension::class => [CspExtension::class, CspExtension::class];
     yield 'austral.http.request' => ['austral.http.request', HttpRequest::class];
     yield 'austral.http.config' => ['austral.http.config', HttpConfiguration::class];
+    yield 'austral.http.csp_nonce' => ['austral.http.csp_nonce', CspNonce::class];
   }
 
   /**
@@ -72,7 +78,7 @@ final class ContainerTest extends TestCase
     }
     sort($ids);
 
-    self::assertSame([HttpConfiguration::class, HttpListener::class, HttpRequest::class], $ids);
+    self::assertSame([HttpConfiguration::class, HttpListener::class, CspNonce::class, HttpRequest::class, CspExtension::class], $ids);
   }
 
   public function testOnlyTheAustralAliasesArePublic(): void
@@ -108,6 +114,7 @@ final class ContainerTest extends TestCase
       self::assertTrue($container->has($alias), sprintf('The alias "%s" must be public.', $alias));
     }
     self::assertInstanceOf(HttpConfiguration::class, $container->get('austral.http.config'));
+    self::assertInstanceOf(CspNonce::class, $container->get('austral.http.csp_nonce'));
     self::assertFalse($container->has('austral.http.request'), 'The alias "austral.http.request" must be private.');
   }
 
@@ -137,10 +144,15 @@ final class ContainerTest extends TestCase
   {
     $container = self::loadExtension();
 
-    foreach ([HttpListener::class, HttpRequest::class] as $id)
+    foreach ([HttpListener::class, HttpRequest::class, CspNonce::class] as $id)
     {
       self::assertSame([['method' => 'reset']], $container->getDefinition($id)->getTag('kernel.reset'), sprintf('"%s" must be reset between two requests.', $id));
     }
+  }
+
+  public function testTheCspExtensionIsATwigExtension(): void
+  {
+    self::assertTrue(self::loadExtension()->getDefinition(CspExtension::class)->hasTag('twig.extension'));
   }
 
   /**
